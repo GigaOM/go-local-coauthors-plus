@@ -11,6 +11,10 @@ class GO_Local_Coauthors_Plus
 		add_action( 'go_xpost_save_post', array( $this, 'go_xpost_save_post' ), 10, 2 );
 
 		add_filter( 'go_theme_post_author', array( $this, 'go_theme_post_author_filter' ), 5, 2 );
+
+		// This filter was added by VIP:
+		// Only do co-author post lookups based on terms to avoid nasty queries because of how many terms there are
+		add_filter( 'coauthors_plus_should_query_post_author', '__return_false' );
 	}// end __construct
 
 	/**
