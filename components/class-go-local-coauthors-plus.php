@@ -46,7 +46,7 @@ class GO_Local_Coauthors_Plus
 			return;
 		}//end if
 
-		$author = apply_filters( 'go_coauthor_posts_links', coauthors_posts_links( $between, $betweenLast, $before, $after, false ), $post_id );
+		$author = apply_filters( 'go_coauthors_posts_links', coauthors_posts_links( $between, $betweenLast, $before, $after, false ), $post_id );
 
 		if ( $echo )
 		{
