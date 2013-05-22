@@ -7,6 +7,9 @@ class GO_Local_Coauthors_Plus_Admin
 	public $author_cache_key     = 'go-local-coauthors-plus-authors';
 	public $version              = 1;
 
+	/**
+	 * Constructor! BOOM!
+	 */
 	public function __construct()
 	{
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
@@ -33,13 +36,31 @@ class GO_Local_Coauthors_Plus_Admin
 		wp_register_script( 'go-local-coauthors-plus-admin', plugins_url( 'js/go-local-coauthors-plus-admin.js', __FILE__ ), array( 'jquery', 'co-authors-plus-js', 'mockjax' ), $version, TRUE );
 
 		$data = array(
-			'authors' => $this->simple_authors(),
+			'authors' => $this->cached_authors(),
 		);
 		wp_localize_script( 'go-local-coauthors-plus-admin', 'go_local_coauthors_plus_admin', $data );
 
 		wp_enqueue_script( 'mockjax' );
 		wp_enqueue_script( 'go-local-coauthors-plus-admin' );
 	}//end admin_enqueue_scripts
+
+	/**
+	 * Get authors from site options if they exist.  If they aren't stored in site options,
+	 * generate the authors and store them in options.
+	 */
+	public function cached_authors()
+	{
+		$authors = get_option( $this->author_cache_key, array() );
+
+		if ( ! $authors )
+		{
+			$authors = $this->simple_authors();
+
+			update_option( $this->author_cache_key, $authors );
+		}//end if
+
+		return $authors;
+	}//end cached_authors
 
 	/**
 	 * hooked into the update_user_meta filter.  This method will determine if the author
