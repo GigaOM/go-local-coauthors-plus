@@ -30,8 +30,14 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * hooked into the admin_enqueue_scripts
 	 */
-	public function admin_enqueue_scripts()
+	public function admin_enqueue_scripts( $hook )
 	{
+		// we only need to enqueue all of these scripts if we are on a post page
+		if ( 'post-new.php' != $hook && 'post.php' != $hook )
+		{
+			return;
+		}//end if
+
 		wp_register_script( 'mockjax', plugins_url( 'js/external/jquery.mockjax.js', __FILE__ ), array(), '1.5.1', TRUE );
 		wp_register_script( 'go-local-coauthors-plus-admin', plugins_url( 'js/go-local-coauthors-plus-admin.js', __FILE__ ), array( 'jquery', 'co-authors-plus-js', 'mockjax' ), $version, TRUE );
 
