@@ -127,7 +127,7 @@ class GO_Local_Coauthors_Plus_Admin
 			return;
 		}//end if
 
-		update_option( $this->author_cache_key, $this->simple_authors() );
+		$this->refresh_author_cache();
 
 		// reset the 'refresh_author_cache' status
 		$this->refresh_author_cache = FALSE;
@@ -139,7 +139,7 @@ class GO_Local_Coauthors_Plus_Admin
 	public function profile_update( $user_id, $old_user_data )
 	{
 		// get the user object so we can check capabilities
-		$user = get_user_by( 'id', $object_id );
+		$user = get_user_by( 'id', $user_id );
 
 		if ( $user->has_cap( 'edit_posts' ) )
 		{
@@ -168,9 +168,7 @@ class GO_Local_Coauthors_Plus_Admin
 	 */
 	public function refresh_author_cache()
 	{
-		$authors = $this->simple_authors();
-
-		update_option( $this->author_cache_key, $authors );
+		update_option( $this->author_cache_key, $this->simple_authors() );
 	}//end refresh_author_cache
 
 	/**
