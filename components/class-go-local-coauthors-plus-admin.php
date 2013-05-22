@@ -25,6 +25,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		add_filter( 'update_user_metadata', array( $this, 'update_user_metadata' ), 10, 5 );
 		add_action( 'updated_user_meta', array( $this, 'updated_user_meta' ), 10, 4 );
+		add_action( 'profile_update', array( $this, 'profile_update' ), 10, 4 );
 	}//end admin_init
 
 	/**
@@ -49,24 +50,6 @@ class GO_Local_Coauthors_Plus_Admin
 		wp_enqueue_script( 'mockjax' );
 		wp_enqueue_script( 'go-local-coauthors-plus-admin' );
 	}//end admin_enqueue_scripts
-
-	/**
-	 * Get authors from site options if they exist.  If they aren't stored in site options,
-	 * generate the authors and store them in options.
-	 */
-	public function cached_authors()
-	{
-		$authors = get_option( $this->author_cache_key, array() );
-
-		if ( ! $authors )
-		{
-			$authors = $this->simple_authors();
-
-			update_option( $this->author_cache_key, $authors );
-		}//end if
-
-		return $authors;
-	}//end cached_authors
 
 	/**
 	 * hooked into the update_user_meta filter.  This method will determine if the author
@@ -144,6 +127,46 @@ class GO_Local_Coauthors_Plus_Admin
 		// reset the 'refresh_author_cache' status
 		$this->refresh_author_cache = FALSE;
 	}//end profile_update
+
+	/**
+	 * hooked to the profile_update action
+	 */
+	public function profile_update( $user_id, $old_user_data )
+	{
+		// get the user object so we can check capabilities
+		$user = get_user_by( 'id', $object_id );
+
+		if ( $user->has_cap( 'edit_posts' ) )
+		{
+			$this->refresh_author_cache();
+		}//end if
+	}//end profile_update
+
+	/**
+	 * Get authors from site options if they exist.  If they aren't stored in site options,
+	 * generate the authors and store them in options.
+	 */
+	public function cached_authors()
+	{
+		$authors = get_option( $this->author_cache_key, array() );
+
+		if ( ! $authors )
+		{
+			$this->refresh_author_cache();
+		}//end if
+
+		return $authors;
+	}//end cached_authors
+
+	/**
+	 * refresh the author cache
+	 */
+	public function refresh_author_cache()
+	{
+		$authors = $this->simple_authors();
+
+		update_option( $this->author_cache_key, $authors );
+	}//end refresh_author_cache
 
 	/**
 	 * generates a simple array of stdClass authors
