@@ -5,6 +5,7 @@ class GO_Local_Coauthors_Plus_Admin
 	public $id_base              = 'go_local_coauthors_plus_admin';
 	public $refresh_author_cache = FALSE;
 	public $author_cache_key     = 'go-local-coauthors-plus-authors';
+	public $cron_key             = 'go_local_coauthors_plus_refresh_authors_cron';
 	public $version              = 1;
 
 	/**
@@ -14,6 +15,10 @@ class GO_Local_Coauthors_Plus_Admin
 	{
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+		add_action( $this->cron_key, array( $this, 'refresh_author_cache' ) );
+
+		// Deactivate nicely and clear our custom cron
+		register_deactivation_hook( __FILE__, array( $this, 'cron_deregister' ) );
 	}// end __construct
 
 	/**
@@ -234,6 +239,25 @@ class GO_Local_Coauthors_Plus_Admin
 
 		return $roles;
 	}//end editor_roles
+
+	/**
+	 * when the plugin is activated, activate our new custom cron hook
+	 */
+	public function cron_register()
+	{
+		if ( ! wp_next_scheduled( $this->cron_key ) )
+		{
+			wp_schedule_event( time(), 'daily', $this->cron_key );
+		}//end if
+	}//end cron_register
+
+	/**
+	 * clear out this cron hook when the plugin is deactivated
+	 */
+	public function cron_deregister()
+	{
+		wp_clear_scheduled_hook( $this->cron_key );
+	}//end cron_deregister
 }//end class
 
 function go_local_coauthors_plus_admin()
