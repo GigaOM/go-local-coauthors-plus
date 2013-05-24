@@ -2,11 +2,12 @@
 
 class GO_Local_Coauthors_Plus_Admin
 {
-	public $id_base              = 'go_local_coauthors_plus_admin';
-	public $refresh_author_cache = FALSE;
-	public $author_cache_key     = 'go-local-coauthors-plus-authors';
-	public $cron_key             = 'go_local_coauthors_plus_refresh_authors_cron';
-	public $version              = 1;
+	public $id_base                 = 'go_local_coauthors_plus_admin';
+	public $refresh_author_cache    = FALSE;
+	public $author_cache_key        = 'go-local-coauthors-plus-authors';
+	public $cron_key                = 'go_local_coauthors_plus_refresh_authors_cron';
+	public $version                 = 1;
+	public $author_cache_capability = 'edit_posts';
 
 	/**
 	 * Constructor! BOOM!
@@ -26,8 +27,6 @@ class GO_Local_Coauthors_Plus_Admin
 	 */
 	public function admin_init()
 	{
-		// @TODO: update author cache when an editor's name has updated
-
 		add_filter( 'update_user_metadata', array( $this, 'update_user_metadata' ), 10, 5 );
 		add_action( 'updated_user_meta', array( $this, 'updated_user_meta' ), 10, 4 );
 		add_action( 'profile_update', array( $this, 'profile_update' ), 10, 4 );
@@ -72,12 +71,12 @@ class GO_Local_Coauthors_Plus_Admin
 		// get the user object so we can check capabilities
 		$user = get_user_by( 'id', $object_id );
 
-		$could_edit_posts = $this->role_set_has_capability( $user->roles, 'edit_posts' );
-		$can_edit_posts   = $this->role_set_has_capability( array_keys( $meta_value ), 'edit_posts' );
+		$had_capability = $this->role_set_has_capability( $user->roles, $this->author_cache_capability );
+		$has_capability = $this->role_set_has_capability( array_keys( $meta_value ), $this->author_cache_capability );
 
-		// if the ability to edit posts has changed, we'll want to refresh the cached
-		// collection of authors
-		if ( $could_edit_posts != $can_edit_posts )
+		// if the ability to used to determine if the user should be considered an author has changed,
+		// we'll want to refresh the cached collection of authors
+		if ( $had_capability != $has_capability )
 		{
 			$this->refresh_author_cache = TRUE;
 		}//end if
@@ -91,14 +90,14 @@ class GO_Local_Coauthors_Plus_Admin
 	 */
 	public function role_set_has_capability( $user_roles, $capability )
 	{
-		$editor_roles = $this->editor_roles();
+		$roles_with_capability = $this->roles_with_capability();
 
 		$user_roles = is_array( $user_roles ) ? $user_roles : array();
 
 		foreach ( $user_roles as $role_id )
 		{
 			// if the role is set to FALSE for some reason, just move on
-			if ( ! isset( $editor_roles[ $role_id ] ) )
+			if ( ! isset( $roles_with_capability[ $role_id ] ) )
 			{
 				continue;
 			}//end if
@@ -107,7 +106,7 @@ class GO_Local_Coauthors_Plus_Admin
 		}//end foreach
 
 		return FALSE;
-	}//end role_set_has_edit_capability
+	}//end role_set_has_capability
 
 	/**
 	 * this action fires AFTER update_user_metadata - which calculates whether or not
@@ -141,7 +140,7 @@ class GO_Local_Coauthors_Plus_Admin
 		// get the user object so we can check capabilities
 		$user = get_user_by( 'id', $user_id );
 
-		if ( $user->has_cap( 'edit_posts' ) )
+		if ( $user->has_cap( $this->author_cache_capability ) )
 		{
 			$this->refresh_author_cache();
 		}//end if
@@ -157,7 +156,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		if ( ! $authors )
 		{
-			$this->refresh_author_cache();
+			$authors = $this->refresh_author_cache();
 		}//end if
 
 		return $authors;
@@ -168,7 +167,11 @@ class GO_Local_Coauthors_Plus_Admin
 	 */
 	public function refresh_author_cache()
 	{
-		update_option( $this->author_cache_key, $this->simple_authors() );
+		$authors = $this->simple_authors();
+
+		update_option( $this->author_cache_key, $authors );
+
+		return $authors;
 	}//end refresh_author_cache
 
 	/**
@@ -178,7 +181,7 @@ class GO_Local_Coauthors_Plus_Admin
 	{
 		$simple_authors = array();
 
-		$roles = $this->editor_roles();
+		$roles = $this->roles_with_capability();
 
 		foreach ( $roles as $key => $role )
 		{
@@ -213,9 +216,9 @@ class GO_Local_Coauthors_Plus_Admin
 	}//end simple_authors
 
 	/**
-	 * return a list of roles that have edit privileges
+	 * return a list of roles that have the appropriate capability
 	 */
-	public function editor_roles()
+	public function roles_with_capability()
 	{
 		global $wp_roles;
 		static $roles = array();
@@ -227,7 +230,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		foreach ( $wp_roles->role_objects as $key => $role )
 		{
-			if ( ! $role->has_cap( 'edit_posts' ) )
+			if ( ! $role->has_cap( $this->author_cache_capability ) )
 			{
 				continue;
 			}//end if
@@ -236,7 +239,7 @@ class GO_Local_Coauthors_Plus_Admin
 		}//end foreach
 
 		return $roles;
-	}//end editor_roles
+	}//end roles_with_capability
 
 	/**
 	 * when the plugin is activated, activate our new custom cron hook
