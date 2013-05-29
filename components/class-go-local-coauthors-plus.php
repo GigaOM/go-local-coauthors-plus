@@ -15,8 +15,13 @@ class GO_Local_Coauthors_Plus
 		// This filter was added by VIP:
 		// Only do co-author post lookups based on terms to avoid nasty queries because of how many terms there are
 		add_filter( 'coauthors_plus_should_query_post_author', '__return_false' );
-	}// end __construct
 
+		if ( is_admin() )
+		{
+			require_once __DIR__ . '/class-go-local-coauthors-plus-admin.php';
+			go_local_coauthors_plus_admin();
+		}//end if
+	}// end __construct
 	/**
 	 * filter the post author.  Don't use the default WP author, instead
 	 * use guest or coauthors data. See GO_GuestPost::coauthors_posts_links
