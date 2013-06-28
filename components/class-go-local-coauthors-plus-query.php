@@ -8,7 +8,7 @@ class GO_Local_Coauthors_Plus_Query
 	public function __construct()
 	{
 		// we want our init to run after co-author-plus has added its filters
-		add_action( 'init', array( $this, 'init' ), 200 );
+		add_action( 'init', array( $this, 'init' ), 199 );
 
 		// parse_query needs to be run before co-author-plus' posts_* filters,
 		// which're at priority 10
@@ -33,35 +33,66 @@ class GO_Local_Coauthors_Plus_Query
 	 */
 	public function parse_query( $wp_query )
 	{
+		global $coauthors_plus;
+
 		if ( $wp_query->is_author )
 		{
 			// get author_name if we only have author id
 			if ( ! isset( $wp_query->query['author_name'] ) || empty( $wp_query->query['author_name'] ) )
 			{
 				$user = get_user_by( 'id', $wp_query->query['author'] );
-				$author_name = $user->user_nicename;
+				$author_term = $user->user_nicename;
 			}
 			else
 			{
+				// this is already a user_nicename
 				$author_name = $wp_query->query_vars['author_name'];
-			}
+				$coauthor = $coauthors_plus->get_coauthor_by( 'user_nicename', $author_name );
+				$author_term = FALSE;
+				if ( FALSE != $coauthor )
+				{
+					$term_obj = $coauthors_plus->get_author_term( $coauthor );
+					if ( $term_obj )
+					{
+						$author_term = $term_obj->slug;
+					}
+				}
+			}//END if-else
 
-			global $coauthors_plus;
 			$author_tax_query = array(
 				'taxonomy' => $coauthors_plus->coauthor_taxonomy,
-				'terms' => array( $author_name ),
+				'terms' => array( $author_term ),
 				'include_children' => 1,
 				'field' => 'slug',
 				'operator' => 'IN',
-			);
-			if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
+				);
+
+			if ( FALSE != $author_term )
 			{
-				$wp_query->query_vars['tax_query'][] = $author_tax_query;
+				if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
+				{
+					$wp_query->query_vars['tax_query'][] = $author_tax_query;
+				}
+				else
+				{
+					$wp_query->query_vars['tax_query'] = array( $author_tax_query );
+				}
 			}
 			else
 			{
-				$wp_query->query_vars['tax_query'] = array( $author_tax_query );
-			}
+				// construct a tax query to make the wp_query result empty
+				$anti_author_tax_query = $author_tax_query;
+				$anti_author_tax_query['operator'] = 'NOT IN';
+				if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
+				{
+					$wp_query->query_vars['tax_query'][] = $author_tax_query;
+					$wp_query->query_vars['tax_query'][] = $anti_author_tax_query;
+				}
+				else
+				{
+					$wp_query->query_vars['tax_query'] = array( $author_tax_query, $anti_author_tax_query );
+				}
+			}//END if-else
 
 			$wp_query->set( 'author_name', '' );
 			$wp_query->set( 'author', '' );
