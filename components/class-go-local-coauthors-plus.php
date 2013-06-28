@@ -5,16 +5,8 @@
 
 class GO_Local_Coauthors_Plus
 {
-	public $go_coauthors_query = FALSE;
-
 	public function __construct()
 	{
-		require_once __DIR__ . '/class-go-local-coauthors-plus-query.php';
-		if ( ! $this->go_local_coauthors_query )
-		{
-			$this->go_coauthors_query = new GO_Local_Coauthors_Plus_Query();
-		}
-
 		add_filter( 'go_xpost_pre_send_post', array( $this, 'go_xpost_pre_send_post' ) );
 		add_action( 'go_xpost_save_post', array( $this, 'go_xpost_save_post' ), 10, 2 );
 
@@ -134,4 +126,4 @@ function go_coauthors()
 	}// end if
 
 	return $go_coauthors;
-}// end go_xpost
+}// end go_coauthors

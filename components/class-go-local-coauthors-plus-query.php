@@ -69,3 +69,18 @@ class GO_Local_Coauthors_Plus_Query
 	}//END parse_query
 
 }//END class GO_Local_Coauthors_Query
+
+/**
+ * singleton
+ */
+function go_coauthors_query()
+{
+	global $go_coauthors_query;
+
+	if ( ! isset( $go_coauthors_query ) )
+	{
+		$go_coauthors_query = new GO_Local_Coauthors_Plus_Query();
+	}// end if
+
+	return $go_coauthors_query;
+}// end go_coauthors_query
