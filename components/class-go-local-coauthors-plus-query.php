@@ -38,6 +38,7 @@ class GO_Local_Coauthors_Plus_Query
 		if ( $wp_query->is_author )
 		{
 			// get author_name if we only have author id
+			$author_term = FALSE;
 			if ( ! isset( $wp_query->query['author_name'] ) || empty( $wp_query->query['author_name'] ) )
 			{
 				$user = get_user_by( 'id', $wp_query->query['author'] );
@@ -48,7 +49,6 @@ class GO_Local_Coauthors_Plus_Query
 				// this is already a user_nicename
 				$author_name = $wp_query->query_vars['author_name'];
 				$coauthor = $coauthors_plus->get_coauthor_by( 'user_nicename', $author_name );
-				$author_term = FALSE;
 				if ( FALSE != $coauthor )
 				{
 					$term_obj = $coauthors_plus->get_author_term( $coauthor );
@@ -81,6 +81,7 @@ class GO_Local_Coauthors_Plus_Query
 			else
 			{
 				// construct a tax query to make the wp_query result empty
+				$author_tax_query['terms'] = array( 'author-and-anti-author' );
 				$anti_author_tax_query = $author_tax_query;
 				$anti_author_tax_query['operator'] = 'NOT IN';
 				if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
