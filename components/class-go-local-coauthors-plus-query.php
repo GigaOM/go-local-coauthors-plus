@@ -46,8 +46,9 @@ class GO_Local_Coauthors_Plus_Query
 				$author_name = $wp_query->query_vars['author_name'];
 			}
 
+			global $coauthors_plus;
 			$author_tax_query = array(
-				'taxonomy' => 'author',
+				'taxonomy' => $coauthors_plus->coauthor_taxonomy,
 				'terms' => array( $author_name ),
 				'include_children' => 1,
 				'field' => 'slug',
