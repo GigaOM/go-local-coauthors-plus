@@ -46,7 +46,10 @@ class GO_Local_Coauthors_Plus_Query
 			}
 			else
 			{
-				// this is already a user_nicename
+				// this is already a user_nicename so we start with it
+				$author_term = $author_name;
+
+				// but try to use the coauthor term if possible.
 				$author_name = $wp_query->query_vars['author_name'];
 				$coauthor = $coauthors_plus->get_coauthor_by( 'user_nicename', $author_name );
 				if ( FALSE != $coauthor )
