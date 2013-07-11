@@ -62,6 +62,12 @@ class GO_Local_Coauthors_Plus_Query
 				}
 			}//END if-else
 
+			// give up if we don't find the author as an author term
+			if ( FALSE == $author_term )
+			{
+				return;
+			}
+
 			$author_tax_query = array(
 				'taxonomy' => $coauthors_plus->coauthor_taxonomy,
 				'terms' => array( $author_term ),
@@ -70,32 +76,13 @@ class GO_Local_Coauthors_Plus_Query
 				'operator' => 'IN',
 				);
 
-			if ( FALSE != $author_term )
+			if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
 			{
-				if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
-				{
-					$wp_query->query_vars['tax_query'][] = $author_tax_query;
-				}
-				else
-				{
-					$wp_query->query_vars['tax_query'] = array( $author_tax_query );
-				}
+				$wp_query->query_vars['tax_query'][] = $author_tax_query;
 			}
 			else
 			{
-				// construct a tax query to make the wp_query result empty
-				$author_tax_query['terms'] = array( 'author-and-anti-author' );
-				$anti_author_tax_query = $author_tax_query;
-				$anti_author_tax_query['operator'] = 'NOT IN';
-				if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
-				{
-					$wp_query->query_vars['tax_query'][] = $author_tax_query;
-					$wp_query->query_vars['tax_query'][] = $anti_author_tax_query;
-				}
-				else
-				{
-					$wp_query->query_vars['tax_query'] = array( $author_tax_query, $anti_author_tax_query );
-				}
+				$wp_query->query_vars['tax_query'] = array( $author_tax_query );
 			}//END if-else
 
 			$wp_query->set( 'author_name', '' );
