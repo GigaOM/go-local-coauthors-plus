@@ -16,6 +16,8 @@ class GO_Local_Coauthors_Plus
 		// Only do co-author post lookups based on terms to avoid nasty queries because of how many terms there are
 		add_filter( 'coauthors_plus_should_query_post_author', '__return_false' );
 
+		add_action( 'wp_ajax_go_coauthors_taxonomy_update', array( $this, 'coauthors_taxonomy_update' ) );
+
 		if ( is_admin() )
 		{
 			require_once __DIR__ . '/class-go-local-coauthors-plus-admin.php';
@@ -110,6 +112,108 @@ class GO_Local_Coauthors_Plus
 
 		$coauthors_plus->add_coauthors( $post_id, $coauthors );
 	}// end go_xpost_save_post
+
+
+	/**
+	 * admin ajax call to fix posts missing coauthor taxonomy ('author') terms.
+	 *
+	 * (these are query vars)
+	 *
+	 * @param post_type type of posts to process; required
+	 * @param batch_size number of posts to process; optional. default = 10
+	 */
+	public function coauthors_taxonomy_update()
+	{
+		echo "<pre>\n\n";
+		echo "updating 'author' taxonomy on published posts\n";
+
+		if ( ! isset( $_GET['post_type'] ) )
+		{
+			echo "missing post_type query var\n";
+			die;
+		}
+		$post_type = $_GET['post_type'];
+
+		if ( isset( $_GET['batch_size'] ) )
+		{
+			$batch_size = $_GET['batch_size'];
+		}
+		else
+		{
+			$batch_size = 10; // default
+		}
+		echo "  processing $batch_size '$post_type' posts at a time:\n\n";
+
+		$posts_fixed = 0;
+		$offset = 0;
+
+		global $coauthors_plus;
+
+		while( $posts_fixed < $batch_size )
+		{
+			// get a batch of published posts to filter for ones missing author taxonomy
+			$posts = get_posts( array
+								(
+									'post_status' => 'publish',
+									'post_type' => $post_type,
+									'posts_per_page' => $batch_size*2,
+									'offset' => $offset,
+									'orderby' => 'ID',
+									'order'   => 'ASC',
+								) );
+
+			$offset += count( $posts );
+
+			foreach( $posts as $post )
+			{
+				// does this post already have a coauthor term?
+				$author_terms = wp_get_object_terms( $post->ID, array( $coauthors_plus->coauthor_taxonomy ) );
+				if ( ! empty( $author_terms ) )
+				{
+					//echo "$post->ID has author term(s)\n";
+					continue;
+				}
+
+				echo "$post->ID needs some coauthor taxonomy love  ";
+
+				// each post has at least one author
+				$coauthors = array();
+				$author = get_user_by( 'id', (int) $post->post_author );
+				if ( is_object( $author ) )
+				{
+					$coauthors[] = $author->user_login;
+				}
+
+				// and may have legacy coauthors stored in post_meta
+				$legacy_coauthors = get_post_meta( $post->ID, '_coauthor' ); 
+				if( is_array( $legacy_coauthors ) )
+				{
+					foreach( $legacy_coauthors as $legacy_coauthor )
+					{
+						$legacy_coauthor = get_user_by( 'id', (int) $legacy_coauthor );
+						if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
+						{
+							$coauthors[] = $legacy_coauthor->user_login;
+						}
+					}//END foreach
+				}//END if
+
+				$coauthors_plus->add_coauthors( $post->ID, $coauthors );
+
+				echo "=>  coauthor(s) added\n";
+				++ $posts_fixed;
+				if ( $posts_fixed >= $batch_size )
+				{
+					break;
+				}
+
+			}//END foreach
+		}//END while
+
+		echo "</pre>\n";
+		die;
+	}
+
 }//end class
 
 /**
