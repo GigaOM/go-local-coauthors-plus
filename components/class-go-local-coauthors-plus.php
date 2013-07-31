@@ -24,6 +24,7 @@ class GO_Local_Coauthors_Plus
 			go_local_coauthors_plus_admin();
 		}//end if
 	}// end __construct
+
 	/**
 	 * filter the post author.  Don't use the default WP author, instead
 	 * use guest or coauthors data. See GO_GuestPost::coauthors_posts_links
@@ -214,7 +215,7 @@ class GO_Local_Coauthors_Plus
 		die;
 	}
 
-}//end class
+}//end class GO_Local_Coauthors_Plus
 
 /**
  * singleton
@@ -229,4 +230,4 @@ function go_coauthors()
 	}// end if
 
 	return $go_coauthors;
-}// end go_xpost
+}// end go_coauthors
