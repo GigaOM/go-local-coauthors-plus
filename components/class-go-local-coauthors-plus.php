@@ -137,7 +137,7 @@ class GO_Local_Coauthors_Plus
 
 		if ( isset( $_GET['batch_size'] ) )
 		{
-			$batch_size = $_GET['batch_size'];
+			$batch_size = (int) $_GET['batch_size'];
 		}
 		else
 		{
@@ -145,71 +145,52 @@ class GO_Local_Coauthors_Plus
 		}
 		echo "  processing $batch_size '$post_type' posts at a time:\n\n";
 
-		$posts_fixed = 0;
-		$offset = 0;
+		global $coauthors_plus, $wpdb;
 
-		global $coauthors_plus;
+		$query = $wpdb->prepare
+			(
+			"SELECT p.ID, p.post_author, GROUP_CONCAT( DISTINCT( ttx.taxonomy ) ) AS author_tax
+			FROM $wpdb->posts p JOIN $wpdb->term_relationships tr ON p.ID = tr.object_id
+				LEFT JOIN $wpdb->term_taxonomy ttx ON ( tr.term_taxonomy_id = ttx.term_taxonomy_id AND ttx.taxonomy = %s )
+			WHERE p.post_status = %s AND p.post_type = %s
+			GROUP BY p.ID HAVING author_tax is NULL LIMIT %d",
+			$coauthors_plus->coauthor_taxonomy,
+			'publish',
+			$post_type,
+			$batch_size
+			);
+		$rows = $wpdb->get_results( $query );
 
-		while( $posts_fixed < $batch_size )
+		foreach( $rows as $row )
 		{
-			// get a batch of published posts to filter for ones missing author taxonomy
-			$posts = get_posts( array
-								(
-									'post_status' => 'publish',
-									'post_type' => $post_type,
-									'posts_per_page' => $batch_size*2,
-									'offset' => $offset,
-									'orderby' => 'ID',
-									'order'   => 'ASC',
-								) );
+			echo "$row->ID needs some coauthor taxonomy love  ";
 
-			$offset += count( $posts );
-
-			foreach( $posts as $post )
+			// each post has at least one author
+			$coauthors = array();
+			$author = get_user_by( 'id', (int) $row->post_author );
+			if ( is_object( $author ) )
 			{
-				// does this post already have a coauthor term?
-				$author_terms = wp_get_object_terms( $post->ID, array( $coauthors_plus->coauthor_taxonomy ) );
-				if ( ! empty( $author_terms ) )
-				{
-					//echo "$post->ID has author term(s)\n";
-					continue;
-				}
+				$coauthors[] = $author->user_login;
+			}
 
-				echo "$post->ID needs some coauthor taxonomy love  ";
-
-				// each post has at least one author
-				$coauthors = array();
-				$author = get_user_by( 'id', (int) $post->post_author );
-				if ( is_object( $author ) )
+			// and may have legacy coauthors stored in post_meta
+			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' ); 
+			if( is_array( $legacy_coauthors ) )
+			{
+				foreach( $legacy_coauthors as $legacy_coauthor )
 				{
-					$coauthors[] = $author->user_login;
-				}
-
-				// and may have legacy coauthors stored in post_meta
-				$legacy_coauthors = get_post_meta( $post->ID, '_coauthor' ); 
-				if( is_array( $legacy_coauthors ) )
-				{
-					foreach( $legacy_coauthors as $legacy_coauthor )
+					$legacy_coauthor = get_user_by( 'id', (int) $legacy_coauthor );
+					if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
 					{
-						$legacy_coauthor = get_user_by( 'id', (int) $legacy_coauthor );
-						if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
-						{
-							$coauthors[] = $legacy_coauthor->user_login;
-						}
-					}//END foreach
-				}//END if
+						$coauthors[] = $legacy_coauthor->user_login;
+					}
+				}//END foreach
+			}//END if
 
-				$coauthors_plus->add_coauthors( $post->ID, $coauthors );
+			$coauthors_plus->add_coauthors( $row->ID, $coauthors );
 
-				echo "=>  coauthor(s) added\n";
-				++ $posts_fixed;
-				if ( $posts_fixed >= $batch_size )
-				{
-					break;
-				}
-
-			}//END foreach
-		}//END while
+			echo "=>  coauthor(s) added\n";
+		}//END foreach
 
 		echo "</pre>\n";
 		die;
