@@ -126,6 +126,14 @@ class GO_Local_Coauthors_Plus
 	public function coauthors_taxonomy_update()
 	{
 		echo "<pre>\n\n";
+
+		if ( ! current_user_can( 'edit_others_posts' ) )
+		{
+			echo "you don't have permission to run this admin ajax hook.\n";
+			echo "</pre>\n";
+			die;
+		}
+
 		echo "updating 'author' taxonomy on published posts\n";
 
 		if ( ! isset( $_GET['post_type'] ) )
