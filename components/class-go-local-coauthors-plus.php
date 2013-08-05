@@ -125,22 +125,18 @@ class GO_Local_Coauthors_Plus
 	 */
 	public function coauthors_taxonomy_update()
 	{
-		echo "<pre>\n\n";
-
 		if ( ! current_user_can( 'edit_others_posts' ) )
 		{
-			echo "you don't have permission to run this admin ajax hook.\n";
-			echo "</pre>\n";
-			die;
+			wp_die( 'you do not have permission to run this admin ajax hook.' );
 		}
 
-		echo "updating 'author' taxonomy on published posts\n";
-
-		if ( ! isset( $_GET['post_type'] ) )
+		if ( ! isset( $_GET['post_type'] ) || ! $_GET['post_type'] )
 		{
-			echo "missing post_type query var\n";
-			die;
+			wp_die( 'missing "post_type" query var' );
 		}
+
+		echo "<pre>\n\nupdating 'author' taxonomy on published posts\n";
+
 		$post_type = $_GET['post_type'];
 
 		if ( isset( $_GET['batch_size'] ) )
