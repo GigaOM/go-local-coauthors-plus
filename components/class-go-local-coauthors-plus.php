@@ -16,6 +16,8 @@ class GO_Local_Coauthors_Plus
 		// Only do co-author post lookups based on terms to avoid nasty queries because of how many terms there are
 		add_filter( 'coauthors_plus_should_query_post_author', '__return_false' );
 
+		add_action( 'wp_ajax_go_coauthors_taxonomy_update', array( $this, 'coauthors_taxonomy_update' ) );
+
 		if ( is_admin() )
 		{
 			require_once __DIR__ . '/class-go-local-coauthors-plus-admin.php';
@@ -111,6 +113,100 @@ class GO_Local_Coauthors_Plus
 
 		$coauthors_plus->add_coauthors( $post_id, $coauthors );
 	}// end go_xpost_save_post
+
+
+	/**
+	 * admin ajax call to fix posts missing coauthor taxonomy ('author') terms.
+	 *
+	 * (these are query vars)
+	 *
+	 * @param post_type type of posts to process; required
+	 * @param batch_size number of posts to process; optional. default = 10
+	 */
+	public function coauthors_taxonomy_update()
+	{
+		if ( ! current_user_can( 'edit_others_posts' ) )
+		{
+			wp_die( 'you do not have permission to run this admin ajax hook.' );
+		}
+
+		if ( ! isset( $_GET['post_type'] ) || ! $_GET['post_type'] )
+		{
+			wp_die( 'missing "post_type" query var' );
+		}
+
+		echo "<pre>\n\nupdating 'author' taxonomy on published posts\n";
+
+		$post_type = $_GET['post_type'];
+
+		if ( isset( $_GET['batch_size'] ) )
+		{
+			$batch_size = (int) $_GET['batch_size'];
+		}
+		else
+		{
+			$batch_size = 10; // default
+		}
+		echo "  processing $batch_size '$post_type' posts at a time:\n\n";
+
+		global $coauthors_plus, $wpdb;
+
+		$query = $wpdb->prepare
+			(
+			"SELECT p.ID, p.post_author
+			FROM $wpdb->posts p
+			LEFT JOIN (
+				SELECT tr.object_id 
+				FROM $wpdb->term_relationships tr
+				JOIN $wpdb->term_taxonomy tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+			) t ON t.object_id = p.ID
+			WHERE 1=1
+				AND p.post_status = %s AND p.post_type = %s
+				AND t.object_id IS NULL
+			GROUP BY p.ID 
+			LIMIT %d",
+			$coauthors_plus->coauthor_taxonomy,
+			'publish',
+			$post_type,
+			$batch_size
+			);
+		$rows = $wpdb->get_results( $query );
+
+		foreach( $rows as $row )
+		{
+			echo "$row->ID needs some coauthor taxonomy love  ";
+
+			// each post has at least one author
+			$coauthors = array();
+			$author = get_user_by( 'id', (int) $row->post_author );
+			if ( is_object( $author ) )
+			{
+				$coauthors[] = $author->user_login;
+			}
+
+			// and may have legacy coauthors stored in post_meta
+			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' ); 
+			if( is_array( $legacy_coauthors ) )
+			{
+				foreach( $legacy_coauthors as $legacy_coauthor )
+				{
+					$legacy_coauthor = get_user_by( 'id', (int) $legacy_coauthor );
+					if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
+					{
+						$coauthors[] = $legacy_coauthor->user_login;
+					}
+				}//END foreach
+			}//END if
+
+			$coauthors_plus->add_coauthors( $row->ID, $coauthors );
+
+			echo "=>  coauthor(s) added\n";
+		}//END foreach
+
+		echo "</pre>\n";
+		die;
+	}
+
 }//end class GO_Local_Coauthors_Plus
 
 /**
