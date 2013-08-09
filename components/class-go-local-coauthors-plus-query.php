@@ -37,28 +37,30 @@ class GO_Local_Coauthors_Plus_Query
 
 		if ( $wp_query->is_author )
 		{
-			// get author_name if we only have author id
-			$author_term = FALSE;
+			// get the user_nicename so we can use coauthor to get the
+			// actual author term. this is to account for some author slugs
+			// having the "cap-" prefix added by co-authors-plus
 			if ( ! isset( $wp_query->query['author_name'] ) || empty( $wp_query->query['author_name'] ) )
 			{
 				$user = get_user_by( 'id', $wp_query->query['author'] );
-				$author_term = $user->user_nicename;
+				$user_nicename = $user->user_nicename;
 			}
 			else
 			{
-				// this is already a user_nicename (slug) so we start with it
-				$author_term = $wp_query->query_vars['author_name'];
+				// already have the user_nicename (slug)
+				$user_nicename = $wp_query->query_vars['author_name'];
+			}//END else
 
-				$coauthor = $coauthors_plus->get_coauthor_by( 'user_nicename', $author_term );
-				if ( FALSE != $coauthor )
+			$author_term = FALSE;
+			$coauthor = $coauthors_plus->get_coauthor_by( 'user_nicename', $user_nicename );
+			if ( FALSE != $coauthor )
+			{
+				$term_obj = $coauthors_plus->get_author_term( $coauthor );
+				if ( $term_obj )
 				{
-					$term_obj = $coauthors_plus->get_author_term( $coauthor );
-					if ( $term_obj )
-					{
-						$author_term = $term_obj->slug;
-					}
+					$author_term = $term_obj->slug;
 				}
-			}//END if-else
+			}//END if
 
 			// give up if we don't find the author as an author term
 			if ( FALSE == $author_term )
