@@ -40,16 +40,25 @@ class GO_Local_Coauthors_Plus_Query
 			// get the user_nicename so we can use coauthor to get the
 			// actual author term. this is to account for some author slugs
 			// having the "cap-" prefix added by co-authors-plus
+			$user_nicename = FALSE; // default case
 			if ( ! isset( $wp_query->query['author_name'] ) || empty( $wp_query->query['author_name'] ) )
 			{
 				$user = get_user_by( 'id', $wp_query->query['author'] );
-				$user_nicename = $user->user_nicename;
+				if ( $user )
+				{
+					$user_nicename = $user->user_nicename;
+				}
 			}
 			else
 			{
 				// already have the user_nicename (slug)
 				$user_nicename = $wp_query->query_vars['author_name'];
 			}//END else
+
+			if ( ! $user_nicename )
+			{
+				return; // we don't have a valid author
+			}
 
 			$author_term = FALSE;
 			$coauthor = $coauthors_plus->get_coauthor_by( 'user_nicename', $user_nicename );
