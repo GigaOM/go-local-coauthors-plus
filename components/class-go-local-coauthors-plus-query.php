@@ -97,6 +97,7 @@ class GO_Local_Coauthors_Plus_Query
 			$wp_query->set( 'author_name', '' );
 			$wp_query->set( 'author', '' );
 			$wp_query->is_author = FALSE;
+			$wp_query->is_tax = TRUE;
 		}//END if
 	}//END parse_query
 
