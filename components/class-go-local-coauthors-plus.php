@@ -18,6 +18,10 @@ class GO_Local_Coauthors_Plus
 
 		add_action( 'wp_ajax_go_coauthors_taxonomy_update', array( $this, 'coauthors_taxonomy_update' ) );
 
+		// turn off coauthor's guest author support, as it conflicts with our own guest author features and is causing pain
+		// see http://github.com/GigaOM/legacy-pro/issues/1102 
+		add_filter( 'coauthors_guest_authors_enabled' , '__return_false' );
+
 		if ( is_admin() )
 		{
 			require_once __DIR__ . '/class-go-local-coauthors-plus-admin.php';
