@@ -20,7 +20,7 @@ class GO_Local_Coauthors_Plus
 
 		// turn off coauthor's guest author support, as it conflicts with our own guest author features and is causing pain
 		// see http://github.com/GigaOM/legacy-pro/issues/1102 
-		add_filter( 'coauthors_guest_authors_enabled' , '__return_false' );
+		add_filter( 'coauthors_guest_authors_enabled', '__return_false' );
 
 		if ( is_admin() )
 		{
