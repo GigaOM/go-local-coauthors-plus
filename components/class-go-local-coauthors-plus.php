@@ -20,6 +20,10 @@ class GO_Local_Coauthors_Plus
 		// see http://github.com/GigaOM/legacy-pro/issues/1102 
 		add_filter( 'coauthors_guest_authors_enabled', '__return_false' );
 
+		// filter the text that's used for the keyword search index
+		// add author names so keyword searches return posts by the searched author
+		add_filter( 'bcms_search_post_content', array( $this, 'bcms_search_post_content' ), 10, 2 );
+
 		if ( is_admin() )
 		{
 			add_action( 'wp_ajax_go_coauthors_taxonomy_update', array( $this, 'coauthors_taxonomy_update_ajax' ) );
@@ -185,6 +189,27 @@ class GO_Local_Coauthors_Plus
 
 		return count( $rows );
 	}//END update_coauthors_taxonomy
+
+	function bcms_search_post_content( $content, $post_id )
+	{
+		global $coauthors_plus;
+		$authors = get_coauthors( $post_id );
+
+		if ( ! is_array( $authors ) )
+		{
+			return $content;
+		}
+
+		foreach ( $authors as $author )
+		{
+			$content = $content . sprintf( "\n%s %s\n",
+				isset( $author->data->display_name ) ? $author->data->display_name : '',
+				isset( $author->data->user_nicename ) ? $author->data->user_nicename : ''
+			);
+		}
+
+		return $content;
+	}
 
 	function coauthors_taxonomy_update_ajax()
 	{
