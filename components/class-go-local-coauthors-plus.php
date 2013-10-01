@@ -1,7 +1,7 @@
 <?php
 
 // @TODO move code dependencies from go-analytics, go-local-bsocial, go-google-analytics, and go-guestpost into this plugin
-// See https://github.com/GigaOM/gigaom-plugins/issues/28
+// See https://github.com/Gigaom/gigaom-plugins/issues/28
 
 class GO_Local_Coauthors_Plus
 {
@@ -17,7 +17,7 @@ class GO_Local_Coauthors_Plus
 		add_filter( 'coauthors_plus_should_query_post_author', '__return_false' );
 
 		// turn off coauthor's guest author support, as it conflicts with our own guest author features and is causing pain
-		// see http://github.com/GigaOM/legacy-pro/issues/1102 
+		// see http://github.com/Gigaom/legacy-pro/issues/1102 
 		add_filter( 'coauthors_guest_authors_enabled', '__return_false' );
 
 		// filter the text that's used for the keyword search index
