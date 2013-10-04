@@ -44,7 +44,7 @@ class GO_Local_Coauthors_Plus_Admin
 		}//end if
 
 		wp_register_script( 'mockjax', plugins_url( 'js/external/jquery.mockjax.min.js', __FILE__ ), array(), '1.5.1', TRUE );
-		wp_register_script( 'go-local-coauthors-plus-admin', plugins_url( 'js/go-local-coauthors-plus-admin.js', __FILE__ ), array( 'jquery', 'co-authors-plus-js', 'mockjax' ), $version, TRUE );
+		wp_register_script( 'go-local-coauthors-plus-admin', plugins_url( 'js/go-local-coauthors-plus-admin.js', __FILE__ ), array( 'jquery', 'co-authors-plus-js', 'mockjax' ), $this->version, TRUE );
 
 		$data = array(
 			'authors' => $this->cached_authors(),
