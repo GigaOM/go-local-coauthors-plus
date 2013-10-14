@@ -63,7 +63,7 @@ class GO_Local_Coauthors_Plus
 		}//end if
 
 		// if we are on research or search, we want to use Oxford commas
-		if ( ( 'research' == go_config()->get_property_slug() || 'search' == go_config()->get_property_slug() ) )
+		if ( 'research' == go_config()->get_property_slug() || 'search' == go_config()->get_property_slug() )
 		{
 			$between = ', ';
 			$betweenLast = ', and ';
