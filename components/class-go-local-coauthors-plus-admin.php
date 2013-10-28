@@ -53,7 +53,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		global $post;
 
-		if ( isset( $post->ID ) && current_user_can( 'edit_post', $post->ID ) )
+		if ( isset( $post->ID ) && current_user_can( 'add_users' ) )
 		{
 			$clear_cache_link = '<a style="margin-left: 10px; float: right;" href="admin-ajax.php'
 								. '?action=go_local_coauthors_plus_clear_cache&post_id=' .$post->ID
