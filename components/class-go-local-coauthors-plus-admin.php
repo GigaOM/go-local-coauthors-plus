@@ -17,6 +17,7 @@ class GO_Local_Coauthors_Plus_Admin
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( $this->cron_key, array( $this, 'refresh_author_cache' ) );
+		add_action( 'wp_ajax_go_local_coauthors_plus_clear_cache', array( $this, 'clear_cache' ) );
 
 		// Deactivate nicely and clear our custom cron
 		register_deactivation_hook( __FILE__, array( $this, 'cron_deregister' ) );
@@ -49,6 +50,19 @@ class GO_Local_Coauthors_Plus_Admin
 		$data = array(
 			'authors' => $this->cached_authors(),
 		);
+
+		global $post;
+
+		if ( isset( $post->ID ) && current_user_can( 'edit_post', $post->ID ) )
+		{
+			$clear_cache_link = '<a style="margin-left: 10px; float: right;" href="admin-ajax.php'
+								. '?action=go_local_coauthors_plus_clear_cache&post_id=' .$post->ID
+								. '&_wpnonce=' . wp_create_nonce( 'go_local_coauthors_plus_clear_cache' )
+								. '" title="Clear Author Cache">Clear Author Cache</a>';
+
+			$data['clear_cache_link'] = $clear_cache_link;
+		} // END if
+
 		wp_localize_script( 'go-local-coauthors-plus-admin', 'go_local_coauthors_plus_admin', $data );
 
 		wp_enqueue_script( 'mockjax' );
@@ -173,6 +187,20 @@ class GO_Local_Coauthors_Plus_Admin
 
 		return $authors;
 	}//end refresh_author_cache
+
+	/**
+	 * clear author cache and redirect back to post
+	 */
+	public function clear_cache()
+	{
+		if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'go_local_coauthors_plus_clear_cache' ) )
+		{
+			wp_die( 'Not cool', 'Unauthorized access', array( 'response' => 401 ) );
+		} // END if
+
+		$this->refresh_author_cache();
+		wp_redirect( get_edit_post_link( (int) $_REQUEST['post_id'], 'redirect' ) . '&coauthors_plus_cache_cleared=yes' );
+	} // END clear_cache
 
 	/**
 	 * generates a simple array of stdClass authors

@@ -2,7 +2,7 @@ if ( typeof go_local_coauthors_plus_admin == 'undefined' ) {
 	// a wp_localize_script should always define this...but let's
 	// cover our bases.
 	go_local_coauthors_plus_admin = {
-		authors: []
+		authors: [],
 	};
 }//end if
 
@@ -12,6 +12,7 @@ if ( typeof go_local_coauthors_plus_admin == 'undefined' ) {
 	 */
 	go_local_coauthors_plus_admin.init = function() {
 		go_local_coauthors_plus_admin.$input = $('input[name^="coauthorsinput"]');
+		go_local_coauthors_plus_admin.refresh_author_cache();
 
 		// hijack the coauthors_ajax_suggest request and, instead, force the search through
 		// our search method
@@ -52,6 +53,17 @@ if ( typeof go_local_coauthors_plus_admin == 'undefined' ) {
 		}//end for
 
 		this.responseText = results;
+	};
+
+	/**
+	 * Adds controls to allow authors to refresh the author cache
+	 */
+	go_local_coauthors_plus_admin.refresh_author_cache = function() {
+		if ( typeof go_local_coauthors_plus_admin.clear_cache_link == 'undefined' ) {
+			return;
+		}
+
+		$( '#coauthorsdiv .inside' ).prepend( go_local_coauthors_plus_admin.clear_cache_link );
 	};
 })( jQuery );
 
