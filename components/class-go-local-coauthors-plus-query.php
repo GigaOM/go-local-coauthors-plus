@@ -48,6 +48,12 @@ class GO_Local_Coauthors_Plus_Query
 				{
 					$user_nicename = $user->user_nicename;
 				}
+				else
+				{
+					// we got an invalid author id
+					$wp_query->set_404();
+					return;
+				}
 			}
 			else
 			{
@@ -74,6 +80,7 @@ class GO_Local_Coauthors_Plus_Query
 			// give up if we don't find the author as an author term
 			if ( FALSE == $author_term )
 			{
+				$wp_query->set_404();
 				return;
 			}
 
