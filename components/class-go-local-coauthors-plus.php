@@ -65,15 +65,18 @@ class GO_Local_Coauthors_Plus
 		// if we are on research or search, we want to use Oxford commas
 		if ( 'research' == go_config()->get_property_slug() || 'search' == go_config()->get_property_slug() )
 		{
-			$between = ', ';
-			$betweenLast = ', and ';
+			$between = '%% ';
 			$after = '';
 		}//end if
 
 		$author = apply_filters( 'go_coauthors_posts_links', coauthors_posts_links( $between, $betweenLast, $before, $after, false ), $post_id );
 
-		// get rid of co-authors-plus stupidity...it adds a space before the betweenLast
-		$author = preg_replace( '/ , and/', ', and', $author );
+		// if there are double percents, we're on research/search where oxford commas should be used
+		if ( substr_count( $author, '%%' ) )
+		{
+			$author = preg_replace( '/\s+and /', '%% and ', $author );
+			$author = str_replace( '%%', ',', $author );
+		}//end if
 
 		if ( $echo )
 		{
