@@ -69,7 +69,7 @@ class GO_Local_Coauthors_Plus
 			$after = '';
 		}//end if
 
-		$author = apply_filters( 'go_coauthors_posts_links', coauthors_posts_links( $between, NULL, $before, $after, false ), $post_id );
+		$author = apply_filters( 'go_coauthors_posts_links', coauthors_posts_links( $between, $betweenLast, $before, $after, false ), $post_id );
 
 		// if there are double percents, we're on research/search where oxford commas should be used
 		if ( substr_count( $author, '%%' ) )
