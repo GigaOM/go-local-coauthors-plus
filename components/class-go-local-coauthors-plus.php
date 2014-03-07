@@ -8,6 +8,7 @@ class GO_Local_Coauthors_Plus
 	public function __construct()
 	{
 		add_filter( 'go_xpost_pre_send_post', array( $this, 'go_xpost_pre_send_post' ) );
+		add_filter( 'go_xpost_post_filter', array( $this, 'go_xpost_post_filter' ) );
 		add_action( 'go_xpost_save_post', array( $this, 'go_xpost_save_post' ), 10, 2 );
 
 		add_filter( 'go_theme_post_author', array( $this, 'go_theme_post_author_filter' ), 5, 2 );
@@ -103,6 +104,33 @@ class GO_Local_Coauthors_Plus
 
 		return $xpost;
 	}// end go_xpost_pre_send_post
+
+	/**
+	 * Hooked to the go_xpost_post_filter filter in go-xpost's
+	 * get_post() function. This is called just before the end
+	 * of go-xpost's get_post() function.
+	 *
+	 * @param $xpost stdClass custom post object
+	 * @return $xpost stdClass filtered custom post object.
+	 */
+	public function go_xpost_post_filter( $xpost )
+	{
+		// we want to remove any coauthors_plus' taxonomy terms in
+		// in $xpost->terms so they won't confuse with the terms that'll
+		// be created by the coauthor objects in $xpost->co_authors_plus.
+		global $coauthors_plus;
+		if ( ! is_object( $coauthors_plus ) )
+		{
+			return;
+		}
+
+		if ( isset( $xpost->terms ) )
+		{
+			unset( $xpost->terms[ $coauthors_plus->coauthor_taxonomy ] );
+		}
+
+		return $xpost;
+	}//END go_xpost_post_filter
 
 	/**
 	 * Hooked to the go_xpost_save_post action
