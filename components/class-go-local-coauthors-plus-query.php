@@ -17,6 +17,8 @@ class GO_Local_Coauthors_Plus_Query
 
 	/**
 	 * remove the filters co-author-plus adds to modify the query.
+	 *
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
 	 */
 	public function init()
 	{
@@ -30,6 +32,10 @@ class GO_Local_Coauthors_Plus_Query
 	 * detect an author/author_name query and convert it into a taxonomy
 	 * query. note that WP_Query looks for the user-supplied tax_query
 	 * in $wp_query->query_vars, not $wp_query->tax_query.
+	 *
+	 * @param WP_Query $wp_query
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
+	 * @return null
 	 */
 	public function parse_query( $wp_query )
 	{
@@ -119,6 +125,9 @@ class GO_Local_Coauthors_Plus_Query
 
 /**
  * singleton
+ *
+ * @global GO_Local_Coauthors_Plus $coauthors_plus
+ * @return GO_Local_Coauthors_Plus_Admin
  */
 function go_coauthors_query()
 {
