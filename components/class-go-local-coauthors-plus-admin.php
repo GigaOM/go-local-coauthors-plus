@@ -35,6 +35,8 @@ class GO_Local_Coauthors_Plus_Admin
 
 	/**
 	 * hooked into the admin_enqueue_scripts
+	 *
+	 * @param String $hook Current script
 	 */
 	public function admin_enqueue_scripts( $hook )
 	{
@@ -74,6 +76,13 @@ class GO_Local_Coauthors_Plus_Admin
 	 * cache should be updated based on the changing role of the user being updated. This
 	 * filter fires off BEFORE the wp_capabilities meta value has been updated, allowing
 	 * us to look at the soon-to-be old capabilities and compare with the new.
+	 *
+	 * @param null $check Always null
+	 * @param int $object_id ID of the object metadata is for.
+	 * @param string $meta_key Metadata key.
+	 * @param mixed $meta_value Metadata value. Must be serializable if non-scalar.
+	 * @param mixed $prev_value The previous metadata value.
+	 * @return $check
 	 */
 	public function update_user_metadata( $check, $object_id, $meta_key, $meta_value, $prev_value )
 	{
@@ -101,6 +110,10 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * given an array of roles, check for the existence of a given
 	 * capability
+	 *
+	 * @param array $user_roles An array of role IDs
+	 * @param string $capability Used to see if user has the capability
+	 * @return boolean
 	 */
 	public function role_set_has_capability( $user_roles, $capability )
 	{
@@ -125,6 +138,12 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * this action fires AFTER update_user_metadata - which calculates whether or not
 	 * the author cache should be refreshed.
+	 *
+	 * @param int $meta_id Meta ID
+	 * @param int $object_id ID of the object metadata is for.
+	 * @param string $meta_key The meta_key in the wp_usermeta table for the meta_value to be updated.
+	 * @param mixed $meta_value Optional, The new desired value of the meta_key, which must be different from the existing value. Arrays and objects will be automatically serialized.
+	 * @return null
 	 */
 	public function updated_user_meta( $meta_id, $object_id, $meta_key, $meta_value )
 	{
@@ -144,10 +163,13 @@ class GO_Local_Coauthors_Plus_Admin
 
 		// reset the 'refresh_author_cache' status
 		$this->refresh_author_cache = FALSE;
-	}//end profile_update
+	}//end updated_user_meta
 
 	/**
 	 * hooked to the profile_update action
+	 *
+	 * @param int $user_id Optional, The user ID of the user being edited.
+	 * @param object $old_user_data The WP_User object of the user before it was edited
 	 */
 	public function profile_update( $user_id, $old_user_data )
 	{
@@ -163,6 +185,8 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * Get authors from site options if they exist.  If they aren't stored in site options,
 	 * generate the authors and store them in options.
+	 *
+	 * @return array author objects (stdClass)
 	 */
 	public function cached_authors()
 	{
@@ -178,6 +202,8 @@ class GO_Local_Coauthors_Plus_Admin
 
 	/**
 	 * refresh the author cache
+	 *
+	 * @return array author objects (stdClass)
 	 */
 	public function refresh_author_cache()
 	{
@@ -200,10 +226,13 @@ class GO_Local_Coauthors_Plus_Admin
 
 		$this->refresh_author_cache();
 		wp_redirect( get_edit_post_link( (int) $_REQUEST['post_id'], 'redirect' ) . '&coauthors_plus_cache_cleared=yes' );
+		die;
 	} // END clear_cache
 
 	/**
 	 * generates a simple array of stdClass authors
+	 *
+	 * @return array author objects (stdClass)
 	 */
 	public function simple_authors()
 	{
@@ -245,6 +274,9 @@ class GO_Local_Coauthors_Plus_Admin
 
 	/**
 	 * return a list of roles that have the appropriate capability
+	 *
+	 * @global WP_Roles $wp_roles
+	 * @return array role objects
 	 */
 	public function roles_with_capability()
 	{
@@ -289,6 +321,12 @@ class GO_Local_Coauthors_Plus_Admin
 	}//end cron_deregister
 }//end class
 
+/**
+ * Singleton
+ *
+ * @global GO_Local_Coauthors_Plus_Admin $go_local_coauthors_plus_admin
+ * @return GO_Local_Coauthors_Plus_Admin
+ */
 function go_local_coauthors_plus_admin()
 {
 	global $go_local_coauthors_plus_admin;

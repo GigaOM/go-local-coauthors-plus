@@ -18,7 +18,7 @@ class GO_Local_Coauthors_Plus
 		add_filter( 'coauthors_plus_should_query_post_author', '__return_false' );
 
 		// turn off coauthor's guest author support, as it conflicts with our own guest author features and is causing pain
-		// see http://github.com/Gigaom/legacy-pro/issues/1102 
+		// see http://github.com/Gigaom/legacy-pro/issues/1102
 		add_filter( 'coauthors_guest_authors_enabled', '__return_false' );
 
 		// filter the text that's used for the keyword search index
@@ -38,8 +38,8 @@ class GO_Local_Coauthors_Plus
 	 * filter the post author.  Don't use the default WP author, instead
 	 * use guest or coauthors data. See GO_GuestPost::coauthors_posts_links
 	 *
-	 * @param $author author to filter
-	 * @param $post WP_Post object
+	 * @param object $author author to filter
+	 * @param WP_Post $post
 	 * @return author
 	 */
 	public function go_theme_post_author_filter( $author, $post )
@@ -51,6 +51,14 @@ class GO_Local_Coauthors_Plus
 
 	/**
 	 * Replacement function for coauthors_posts_links that allows us to hook in additional custom functionality
+	 *
+	 * @param string $between default null, string to put between authors
+	 * @param string $betweenLast default null, string between last two authors (ex. "and")
+	 * @param string $before default null, string to put before the authors
+	 * @param string $after default null, string to put after the authors
+	 * @param boolean $echo default true, if true outputs string.
+	 * @global WP_Post $post
+	 * @return string $author
 	 */
 	public function coauthors_posts_links( $between = NULL, $betweenLast = NULL, $before = NULL, $after = NULL, $echo = TRUE )
 	{
@@ -90,8 +98,9 @@ class GO_Local_Coauthors_Plus
 	/**
 	 * Hooked to the go_xpost_pre_send_post filter
 	 *
-	 * @param $xpost stdClass custom post object
-	 * @return $xpost stdClass filtered custom post object
+	 * @param object $xpost custom post object (stdClass)
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
+	 * @return object $xpost filtered custom post (stdClass)
 	 */
 	public function go_xpost_pre_send_post( $xpost )
 	{
@@ -110,8 +119,9 @@ class GO_Local_Coauthors_Plus
 	 * get_post() function. This is called just before the end
 	 * of go-xpost's get_post() function.
 	 *
-	 * @param $xpost stdClass custom post object
-	 * @return $xpost stdClass filtered custom post object.
+	 * @param object $xpost custom post (stdClass)
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
+	 * @return object $xpost filtered custom post (stdClass)
 	 */
 	public function go_xpost_post_filter( $xpost )
 	{
@@ -135,8 +145,9 @@ class GO_Local_Coauthors_Plus
 	/**
 	 * Hooked to the go_xpost_save_post action
 	 *
-	 * @param $post_id int post id being saved from an xpost
-	 * @param $xpost stdClass custom post object
+	 * @param int $post_id post id being saved from an xpost
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
+	 * @param object $xpost custom post (stdClass)
 	 */
 	public function go_xpost_save_post( $post_id, $xpost )
 	{
@@ -170,8 +181,11 @@ class GO_Local_Coauthors_Plus
 	 *
 	 * (these are query vars)
 	 *
-	 * @param post_type type of posts to process; required
-	 * @param batch_size number of posts to process; optional. default = 10
+	 * @param $post_type Required, type of posts to process
+	 * @param $batch_size Default=10, number of posts to process; optional.
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
+	 * @global wpdb $wpdb
+	 * @return boolean
 	 */
 	public function update_coauthors_taxonomy( $post_type, $batch_size )
 	{
@@ -187,14 +201,14 @@ class GO_Local_Coauthors_Plus
 			"SELECT p.ID, p.post_author
 			FROM $wpdb->posts p
 			LEFT JOIN (
-				SELECT tr.object_id 
+				SELECT tr.object_id
 				FROM $wpdb->term_relationships tr
 				JOIN $wpdb->term_taxonomy tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
 			) t ON t.object_id = p.ID
 			WHERE 1=1
 				AND p.post_type = %s
 				AND t.object_id IS NULL
-			GROUP BY p.ID 
+			GROUP BY p.ID
 			LIMIT %d",
 			$coauthors_plus->coauthor_taxonomy,
 			$post_type,
@@ -202,7 +216,7 @@ class GO_Local_Coauthors_Plus
 			);
 		$rows = $wpdb->get_results( $query );
 
-		foreach( $rows as $row )
+		foreach ( $rows as $row )
 		{
 			// each post has at least one author
 			$coauthors = array();
@@ -213,10 +227,10 @@ class GO_Local_Coauthors_Plus
 			}
 
 			// and may have legacy coauthors stored in post_meta
-			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' ); 
-			if( is_array( $legacy_coauthors ) )
+			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' );
+			if ( is_array( $legacy_coauthors ) )
 			{
-				foreach( $legacy_coauthors as $legacy_coauthor )
+				foreach ( $legacy_coauthors as $legacy_coauthor )
 				{
 					$legacy_coauthor = get_user_by( 'id', (int) $legacy_coauthor );
 					if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
@@ -232,7 +246,15 @@ class GO_Local_Coauthors_Plus
 		return count( $rows );
 	}//END update_coauthors_taxonomy
 
-	function bcms_search_post_content( $content, $post_id )
+	/**
+	 * hooked to the bcms_search_post_content filter
+	 *
+	 * @param string $content the content to be filtered
+	 * @param int $post_id post ID number
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
+	 * @return string $content filtered with added author information
+	 */
+	public function bcms_search_post_content( $content, $post_id )
 	{
 		global $coauthors_plus;
 		$authors = get_coauthors( $post_id );
@@ -251,9 +273,14 @@ class GO_Local_Coauthors_Plus
 		}
 
 		return $content;
-	}
+	}//END bcms_search_post_content
 
-	function coauthors_taxonomy_update_ajax()
+    /**
+	 * hooked to the wp_ajax_go_coauthors_taxonomy_update action
+	 *
+	 * @return boolean
+	 */
+	public function coauthors_taxonomy_update_ajax()
 	{
 		if ( ! current_user_can( 'manage_options' ) )
 		{
@@ -300,14 +327,16 @@ window.location = "<?php echo admin_url( 'admin-ajax.php?action=go_coauthors_tax
 
 		die;
 	}//END coauthors_taxonomy_update_ajax
-
-}//end class GO_Local_Coauthors_Plus
+}//END GO_Local_Coauthors_Plus
 
 /**
  * singleton
+ *
+ * @global GO_Local_Coauthors_Plus $go_coauthors
+ * @return GO_Local_Coauthors_Plus
  */
-function go_coauthors()
-{
+ function go_coauthors()
+ {
 	global $go_coauthors;
 
 	if ( ! isset( $go_coauthors ) )
@@ -316,4 +345,4 @@ function go_coauthors()
 	}// end if
 
 	return $go_coauthors;
-}// end go_coauthors
+ }//END go_coauthors
