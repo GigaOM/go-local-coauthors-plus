@@ -186,7 +186,7 @@ class GO_Local_Coauthors_Plus_Admin
 	 * Get authors from site options if they exist.  If they aren't stored in site options,
 	 * generate the authors and store them in options.
 	 *
-	 * @return array author objects (stdclass)
+	 * @return array author objects (stdClass)
 	 */
 	public function cached_authors()
 	{
@@ -203,7 +203,7 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * refresh the author cache
 	 *
-	 * @return array author objects (stdclass)
+	 * @return array author objects (stdClass)
 	 */
 	public function refresh_author_cache()
 	{
@@ -232,7 +232,7 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * generates a simple array of stdClass authors
 	 *
-	 * @return array author objects (stdclass)
+	 * @return array author objects (stdClass)
 	 */
 	public function simple_authors()
 	{
@@ -275,8 +275,8 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * return a list of roles that have the appropriate capability
 	 *
-	 * @return array role objects
 	 * @global WP_Roles $wp_roles
+	 * @return array role objects
 	 */
 	public function roles_with_capability()
 	{
