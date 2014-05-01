@@ -77,7 +77,7 @@ class GO_Local_Coauthors_Plus_Admin
 	 * filter fires off BEFORE the wp_capabilities meta value has been updated, allowing
 	 * us to look at the soon-to-be old capabilities and compare with the new.
 	 *
-	 * @param ?null? $check Always null.
+	 * @param null $check Always null
 	 * @param int $object_id ID of the object metadata is for.
 	 * @param string $meta_key Metadata key.
 	 * @param mixed $meta_value Metadata value. Must be serializable if non-scalar.
