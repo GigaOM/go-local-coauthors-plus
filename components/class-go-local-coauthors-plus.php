@@ -18,7 +18,7 @@ class GO_Local_Coauthors_Plus
 		add_filter( 'coauthors_plus_should_query_post_author', '__return_false' );
 
 		// turn off coauthor's guest author support, as it conflicts with our own guest author features and is causing pain
-		// see http://github.com/Gigaom/legacy-pro/issues/1102 
+		// see http://github.com/Gigaom/legacy-pro/issues/1102
 		add_filter( 'coauthors_guest_authors_enabled', '__return_false' );
 
 		// filter the text that's used for the keyword search index
@@ -42,7 +42,7 @@ class GO_Local_Coauthors_Plus
 	 * @param $post WP_Post object
 	 * @return author
 	 */
-	public function go_theme_post_author_filter( $author, $post )
+	public function go_theme_post_author_filter( $author, $unused_post )
 	{
 		$author = $this->coauthors_posts_links( NULL, NULL, NULL, NULL, FALSE );
 
@@ -157,11 +157,17 @@ class GO_Local_Coauthors_Plus
 		// allow go_xpost to lookup all of these authors, which will trigger creations if appropriate
 		foreach ( $xpost->co_authors_plus as $author )
 		{
-			go_xpost_util()->get_author( $author );
-			$coauthors[] = $author->data->user_nicename;
+			$local_author_id = go_xpost_util()->get_author( $author );
+			if ( $local_author_user = get_user_by( 'id', $local_author_id ) )
+			{
+				$coauthors[] = $local_author_user->user_nicename;
+			}
 		}// end foreach
 
-		$coauthors_plus->add_coauthors( $post_id, $coauthors );
+		if ( ! empty( $coauthors ) )
+		{
+			$coauthors_plus->add_coauthors( $post_id, $coauthors );
+		}
 	}// end go_xpost_save_post
 
 
@@ -202,7 +208,7 @@ class GO_Local_Coauthors_Plus
 			);
 		$rows = $wpdb->get_results( $query );
 
-		foreach( $rows as $row )
+		foreach ( $rows as $row )
 		{
 			// each post has at least one author
 			$coauthors = array();
@@ -213,10 +219,10 @@ class GO_Local_Coauthors_Plus
 			}
 
 			// and may have legacy coauthors stored in post_meta
-			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' ); 
-			if( is_array( $legacy_coauthors ) )
+			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' );
+			if ( is_array( $legacy_coauthors ) )
 			{
-				foreach( $legacy_coauthors as $legacy_coauthor )
+				foreach ( $legacy_coauthors as $legacy_coauthor )
 				{
 					$legacy_coauthor = get_user_by( 'id', (int) $legacy_coauthor );
 					if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
@@ -232,7 +238,7 @@ class GO_Local_Coauthors_Plus
 		return count( $rows );
 	}//END update_coauthors_taxonomy
 
-	function bcms_search_post_content( $content, $post_id )
+	public function bcms_search_post_content( $content, $post_id )
 	{
 		global $coauthors_plus;
 		$authors = get_coauthors( $post_id );
@@ -251,9 +257,9 @@ class GO_Local_Coauthors_Plus
 		}
 
 		return $content;
-	}
+	}//END bcms_search_post_content
 
-	function coauthors_taxonomy_update_ajax()
+	public function coauthors_taxonomy_update_ajax()
 	{
 		if ( ! current_user_can( 'manage_options' ) )
 		{
@@ -300,8 +306,7 @@ window.location = "<?php echo admin_url( 'admin-ajax.php?action=go_coauthors_tax
 
 		die;
 	}//END coauthors_taxonomy_update_ajax
-
-}//end class GO_Local_Coauthors_Plus
+}//END class
 
 /**
  * singleton
