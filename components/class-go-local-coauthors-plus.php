@@ -157,11 +157,17 @@ class GO_Local_Coauthors_Plus
 		// allow go_xpost to lookup all of these authors, which will trigger creations if appropriate
 		foreach ( $xpost->co_authors_plus as $author )
 		{
-			go_xpost_util()->get_author( $author );
-			$coauthors[] = $author->data->user_nicename;
+			$local_author_id = go_xpost_util()->get_author( $author );
+			if ( $local_author_user = get_user_by( 'id', $local_author_id ) )
+			{
+				$coauthors[] = $local_author_user->user_nicename;
+			}
 		}// end foreach
 
-		$coauthors_plus->add_coauthors( $post_id, $coauthors );
+		if ( ! empty( $coauthors ) )
+		{
+			$coauthors_plus->add_coauthors( $post_id, $coauthors );
+		}
 	}// end go_xpost_save_post
 
 
