@@ -144,7 +144,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		// reset the 'refresh_author_cache' status
 		$this->refresh_author_cache = FALSE;
-	}//end update_user_meta
+	}//end updated_user_meta
 
 	/**
 	 * hooked to the profile_update action
