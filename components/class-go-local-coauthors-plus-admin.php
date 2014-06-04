@@ -144,7 +144,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		// reset the 'refresh_author_cache' status
 		$this->refresh_author_cache = FALSE;
-	}//end profile_update
+	}//end update_user_meta
 
 	/**
 	 * hooked to the profile_update action
@@ -200,6 +200,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		$this->refresh_author_cache();
 		wp_redirect( get_edit_post_link( (int) $_REQUEST['post_id'], 'redirect' ) . '&coauthors_plus_cache_cleared=yes' );
+		die;
 	} // END clear_cache
 
 	/**
