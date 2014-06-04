@@ -20,7 +20,7 @@ class GO_Local_Coauthors_Plus_Admin
 		add_action( 'wp_ajax_go_local_coauthors_plus_clear_cache', array( $this, 'clear_cache' ) );
 
 		// Deactivate nicely and clear our custom cron
-		register_deactivation_hook( __FILE__, array( $this, 'cron_deregister' ) );
+		register_deactivation_hook( dirname( __DIR__ ) . '/go-local-coauthors-plus.php', array( $this, 'cron_deregister' ) );
 	}// end __construct
 
 	/**
