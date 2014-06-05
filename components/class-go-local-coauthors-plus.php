@@ -32,7 +32,7 @@ class GO_Local_Coauthors_Plus
 			require_once __DIR__ . '/class-go-local-coauthors-plus-admin.php';
 			go_local_coauthors_plus_admin();
 		}//end if
-	}// end __construct
+	}//end __construct
 
 	/**
 	 * filter the post author.  Don't use the default WP author, instead
@@ -90,10 +90,10 @@ class GO_Local_Coauthors_Plus
 		if ( $echo )
 		{
 			echo $author;
-		}// end if
+		}//end if
 
 		return $author;
-	} // END coauthors_posts_links
+	} //end coauthors_posts_links
 
 	/**
 	 * Hooked to the go_xpost_pre_send_post filter
@@ -109,10 +109,10 @@ class GO_Local_Coauthors_Plus
 		if ( is_object( $coauthors_plus ) )
 		{
 			$xpost->co_authors_plus = get_coauthors( $xpost->origin->ID );
-		}// end if
+		}//end if
 
 		return $xpost;
-	}// end go_xpost_pre_send_post
+	}//end go_xpost_pre_send_post
 
 	/**
 	 * Hooked to the go_xpost_post_filter filter in go-xpost's
@@ -132,22 +132,22 @@ class GO_Local_Coauthors_Plus
 		if ( ! is_object( $coauthors_plus ) )
 		{
 			return;
-		}
+		}//end if
 
 		if ( isset( $xpost->terms ) )
 		{
 			unset( $xpost->terms[ $coauthors_plus->coauthor_taxonomy ] );
-		}
+		}//end if
 
 		return $xpost;
-	}//END go_xpost_post_filter
+	}//end go_xpost_post_filter
 
 	/**
 	 * Hooked to the go_xpost_save_post action
 	 *
 	 * @param int $post_id post id being saved from an xpost
-	 * @global GO_Local_Coauthors_Plus $coauthors_plus
 	 * @param object $xpost custom post (stdClass)
+	 * @global GO_Local_Coauthors_Plus $coauthors_plus
 	 */
 	public function go_xpost_save_post( $post_id, $xpost )
 	{
@@ -156,12 +156,12 @@ class GO_Local_Coauthors_Plus
 		if ( ! is_object( $coauthors_plus ) )
 		{
 			return;
-		}// end if
+		}//end if
 
 		if ( ! isset( $xpost->co_authors_plus ) )
 		{
 			return;
-		}// end if
+		}//end if
 
 		$coauthors = array();
 
@@ -173,7 +173,7 @@ class GO_Local_Coauthors_Plus
 			{
 				$coauthors[] = $local_author_user->user_nicename;
 			}
-		}// end foreach
+		}//end foreach
 
 		if ( ! empty( $coauthors ) )
 		{
@@ -181,14 +181,13 @@ class GO_Local_Coauthors_Plus
 		}
 	}// end go_xpost_save_post
 
-
 	/**
 	 * admin ajax call to fix posts missing coauthor taxonomy ('author') terms.
 	 *
 	 * (these are query vars)
 	 *
 	 * @param $post_type Required, type of posts to process
-	 * @param $batch_size Default=10, number of posts to process; optional.
+	 * @param int $batch_size Default=10, number of posts to process; optional.
 	 * @global GO_Local_Coauthors_Plus $coauthors_plus
 	 * @global wpdb $wpdb
 	 * @return boolean
@@ -198,7 +197,7 @@ class GO_Local_Coauthors_Plus
 		if ( ! current_user_can( 'manage_options' ) )
 		{
 			return FALSE;
-		}
+		}//end if
 
 		global $coauthors_plus, $wpdb;
 
@@ -230,7 +229,7 @@ class GO_Local_Coauthors_Plus
 			if ( is_object( $author ) )
 			{
 				$coauthors[] = $author->user_login;
-			}
+			}//end if
 
 			// and may have legacy coauthors stored in post_meta
 			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' );
@@ -242,15 +241,15 @@ class GO_Local_Coauthors_Plus
 					if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
 					{
 						$coauthors[] = $legacy_coauthor->user_login;
-					}
-				}//END foreach
-			}//END if
+					}//end if
+				}//end foreach
+			}//end if
 
 			$coauthors_plus->add_coauthors( $row->ID, $coauthors );
-		}//END foreach
+		}//end foreach
 
 		return count( $rows );
-	}//END update_coauthors_taxonomy
+	}//end update_coauthors_taxonomy
 
 	/**
 	 * hooked to the bcms_search_post_content filter
@@ -268,7 +267,7 @@ class GO_Local_Coauthors_Plus
 		if ( ! is_array( $authors ) )
 		{
 			return $content;
-		}
+		}//end if
 
 		foreach ( $authors as $author )
 		{
@@ -276,10 +275,10 @@ class GO_Local_Coauthors_Plus
 				isset( $author->data->display_name ) ? $author->data->display_name : '',
 				isset( $author->data->user_nicename ) ? $author->data->user_nicename : ''
 			);
-		}
+		}//end foreach
 
 		return $content;
-	}//END bcms_search_post_content
+	}//end bcms_search_post_content
 
     /**
 	 * hooked to the wp_ajax_go_coauthors_taxonomy_update action
@@ -291,29 +290,29 @@ class GO_Local_Coauthors_Plus
 		if ( ! current_user_can( 'manage_options' ) )
 		{
 			return FALSE;  // not a super admin
-		}
+		}//end if
 
 		if ( ! isset( $_GET['post_type'] ) || ! $_GET['post_type'] )
 		{
 			wp_die( 'missing "post_type" query var' );
-		}
+		}//end if
 		$post_type = sanitize_title_with_dashes( $_GET['post_type'] );
 
 		if ( isset( $_GET['batch_size'] ) )
 		{
 			$batch_size = (int) $_GET['batch_size'];
-		}
+		}//end if
 		else
 		{
 			$batch_size = 25; // default
-		}
+		}//end else
 
 		$count = $this->update_coauthors_taxonomy( $post_type, $batch_size );
 
 		if ( FALSE === $count )
 		{
 			wp_die( 'taxonomy term update error!' );
-		}
+		}//end if
 
 		echo '<h2>(co)authors taxonomy terms</h2><p>added author terms to ' . $count . ' post(s) at '. date( DATE_RFC822 ) .'</p>';
 
@@ -325,15 +324,15 @@ class GO_Local_Coauthors_Plus
 window.location = "<?php echo admin_url( 'admin-ajax.php?action=go_coauthors_taxonomy_update&post_type=' . $post_type . '&batch_size=' . $batch_size ); ?>";
 </script>
 <?php
-		}
+		}//end if
 		else
 		{
 			echo '<p>All done, for now.</p>';
-		}
+		}//end else
 
 		die;
-	}//END coauthors_taxonomy_update_ajax
-}//END class
+	}//end coauthors_taxonomy_update_ajax
+}//end GO_Local_Coauthors_Plus
 
 /**
  * singleton
@@ -348,7 +347,7 @@ window.location = "<?php echo admin_url( 'admin-ajax.php?action=go_coauthors_tax
 	if ( ! isset( $go_coauthors ) )
 	{
 		$go_coauthors = new GO_Local_Coauthors_Plus();
-	}// end if
+	}//end if
 
 	return $go_coauthors;
- }//END go_coauthors
+ }//end go_coauthors

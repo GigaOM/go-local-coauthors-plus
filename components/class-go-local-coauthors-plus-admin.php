@@ -37,6 +37,7 @@ class GO_Local_Coauthors_Plus_Admin
 	 * hooked into the admin_enqueue_scripts
 	 *
 	 * @param String $hook Current script
+	 * @global  ??? $post reference to current post
 	 */
 	public function admin_enqueue_scripts( $hook )
 	{
@@ -63,7 +64,7 @@ class GO_Local_Coauthors_Plus_Admin
 								. '" title="Clear Author Cache">Clear Author Cache</a>';
 
 			$data['clear_cache_link'] = $clear_cache_link;
-		} // END if
+		} //end if
 
 		wp_localize_script( 'go-local-coauthors-plus-admin', 'go_local_coauthors_plus_admin', $data );
 
@@ -123,7 +124,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		foreach ( $user_roles as $role_id )
 		{
-			// if the role is set to FALSE for some reason, just move on
+			//if the role is set to FALSE for some reason, just move on
 			if ( ! isset( $roles_with_capability[ $role_id ] ) )
 			{
 				continue;
@@ -186,7 +187,7 @@ class GO_Local_Coauthors_Plus_Admin
 	 * Get authors from site options if they exist.  If they aren't stored in site options,
 	 * generate the authors and store them in options.
 	 *
-	 * @return array author objects (stdClass)
+	 * @return array $authors objects (stdClass)
 	 */
 	public function cached_authors()
 	{
@@ -203,7 +204,7 @@ class GO_Local_Coauthors_Plus_Admin
 	/**
 	 * refresh the author cache
 	 *
-	 * @return array author objects (stdClass)
+	 * @return array $authors objects (stdClass)
 	 */
 	public function refresh_author_cache()
 	{
@@ -227,12 +228,12 @@ class GO_Local_Coauthors_Plus_Admin
 		$this->refresh_author_cache();
 		wp_redirect( get_edit_post_link( (int) $_REQUEST['post_id'], 'redirect' ) . '&coauthors_plus_cache_cleared=yes' );
 		die;
-	} // END clear_cache
+	} //end clear_cache
 
 	/**
 	 * generates a simple array of stdClass authors
 	 *
-	 * @return array author objects (stdClass)
+	 * @return array $authors objects (stdClass)
 	 */
 	public function simple_authors()
 	{
@@ -276,7 +277,7 @@ class GO_Local_Coauthors_Plus_Admin
 	 * return a list of roles that have the appropriate capability
 	 *
 	 * @global WP_Roles $wp_roles
-	 * @return array role objects
+	 * @return array $roles role objects
 	 */
 	public function roles_with_capability()
 	{

@@ -11,9 +11,9 @@ class GO_Local_Coauthors_Plus_Query
 		add_action( 'init', array( $this, 'init' ), 199 );
 
 		// parse_query needs to be run before co-author-plus' posts_* filters,
-		// which're at priority 10
+		// which are at priority 10
 		add_action( 'parse_query', array( $this, 'parse_query' ), 9 );
-	}//END __construct
+	}//end __construct
 
 	/**
 	 * remove the filters co-author-plus adds to modify the query.
@@ -26,7 +26,7 @@ class GO_Local_Coauthors_Plus_Query
 		remove_filter( 'posts_where', array( $coauthors_plus, 'posts_where_filter' ), 10, 2 );
 		remove_filter( 'posts_join', array( $coauthors_plus, 'posts_join_filter' ), 10, 2 );
 		remove_filter( 'posts_groupby', array( $coauthors_plus, 'posts_groupby_filter' ), 10, 2 );
-	}//END init
+	}//end init
 
 	/**
 	 * detect an author/author_name query and convert it into a taxonomy
@@ -44,7 +44,7 @@ class GO_Local_Coauthors_Plus_Query
 		if ( ! $wp_query->is_author )
 		{
 			return;
-		}// end if
+		}//end if
 
 		// check if the queried post type is in the coauthors-plus supported types
 		if ( isset( $wp_query->query_vars['post_type'] ) && ! in_array( $wp_query->query_vars['post_type'], $coauthors_plus->supported_post_types ) )
@@ -62,24 +62,24 @@ class GO_Local_Coauthors_Plus_Query
 			if ( $user )
 			{
 				$user_nicename = $user->user_nicename;
-			}// end if
+			}//end if
 			else
 			{
 				// we got an invalid author id
 				$wp_query->set_404();
 				return;
-			}// end else
-		}// end if
+			}//end else
+		}//end if
 		else
 		{
 			// already have the user_nicename (slug)
 			$user_nicename = $wp_query->query_vars['author_name'];
-		}//END else
+		}//end else
 
 		if ( ! $user_nicename )
 		{
 			return; // we don't have a valid author
-		}// end if
+		}//end if
 
 		$author_term = FALSE;
 		$coauthor = $coauthors_plus->get_coauthor_by( 'user_nicename', $user_nicename );
@@ -89,15 +89,15 @@ class GO_Local_Coauthors_Plus_Query
 			if ( $term_obj )
 			{
 				$author_term = $term_obj->slug;
-			}
-		}//END if
+			}//end if
+		}//end if
 
 		// give up if we don't find the author as an author term
 		if ( FALSE == $author_term )
 		{
 			$wp_query->set_404();
 			return;
-		}
+		}//end if
 
 		$author_tax_query = array(
 			'taxonomy' => $coauthors_plus->coauthor_taxonomy,
@@ -110,18 +110,18 @@ class GO_Local_Coauthors_Plus_Query
 		if ( isset( $wp_query->query_vars['tax_query'] ) && is_array( $wp_query->query_vars['tax_query'] ) )
 		{
 			$wp_query->query_vars['tax_query'][] = $author_tax_query;
-		}
+		}//end if
 		else
 		{
 			$wp_query->query_vars['tax_query'] = array( $author_tax_query );
-		}//END else
+		}//end else
 
 		$wp_query->set( 'author_name', '' );
 		$wp_query->set( 'author', '' );
 		$wp_query->is_author = FALSE;
 		$wp_query->is_tax = TRUE;
-	}//END parse_query
-}//END GO_Local_Coauthors_Plus_Query
+	}//end parse_query
+}//end GO_Local_Coauthors_Plus_Query
 
 /**
  * singleton
@@ -136,7 +136,7 @@ function go_coauthors_query()
 	if ( ! isset( $go_coauthors_query ) )
 	{
 		$go_coauthors_query = new GO_Local_Coauthors_Plus_Query();
-	}// end if
+	}//end if
 
 	return $go_coauthors_query;
-}// end go_coauthors_query
+}//end go_coauthors_query
