@@ -20,7 +20,7 @@ class GO_Local_Coauthors_Plus_Admin
 		add_action( 'wp_ajax_go_local_coauthors_plus_clear_cache', array( $this, 'clear_cache' ) );
 
 		// Deactivate nicely and clear our custom cron
-		register_deactivation_hook( __FILE__, array( $this, 'cron_deregister' ) );
+		register_deactivation_hook( dirname( __DIR__ ) . '/go-local-coauthors-plus.php', array( $this, 'cron_deregister' ) );
 	}// end __construct
 
 	/**
@@ -144,7 +144,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		// reset the 'refresh_author_cache' status
 		$this->refresh_author_cache = FALSE;
-	}//end profile_update
+	}//end updated_user_meta
 
 	/**
 	 * hooked to the profile_update action
@@ -200,6 +200,7 @@ class GO_Local_Coauthors_Plus_Admin
 
 		$this->refresh_author_cache();
 		wp_redirect( get_edit_post_link( (int) $_REQUEST['post_id'], 'redirect' ) . '&coauthors_plus_cache_cleared=yes' );
+		die;
 	} // END clear_cache
 
 	/**
