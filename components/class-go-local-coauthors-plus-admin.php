@@ -37,7 +37,7 @@ class GO_Local_Coauthors_Plus_Admin
 	 * hooked into the admin_enqueue_scripts
 	 *
 	 * @param String $hook Current script
-	 * @global  ??? $post reference to current post
+	 * @global  WP_Post $post reference to current post
 	 */
 	public function admin_enqueue_scripts( $hook )
 	{

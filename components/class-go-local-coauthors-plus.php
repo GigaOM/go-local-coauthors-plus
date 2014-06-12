@@ -340,8 +340,8 @@ window.location = "<?php echo admin_url( 'admin-ajax.php?action=go_coauthors_tax
  * @global GO_Local_Coauthors_Plus $go_coauthors
  * @return GO_Local_Coauthors_Plus
  */
- function go_coauthors()
- {
+function go_coauthors()
+{
 	global $go_coauthors;
 
 	if ( ! isset( $go_coauthors ) )
@@ -350,4 +350,4 @@ window.location = "<?php echo admin_url( 'admin-ajax.php?action=go_coauthors_tax
 	}//end if
 
 	return $go_coauthors;
- }//end go_coauthors
+}//end go_coauthors
