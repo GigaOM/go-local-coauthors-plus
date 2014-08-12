@@ -120,7 +120,39 @@ class GO_Local_Coauthors_Plus_Query
 		$wp_query->set( 'author', '' );
 		$wp_query->is_author = FALSE;
 		$wp_query->is_tax = TRUE;
+
+		add_action( 'posts_selection', array( $this, 'posts_selection' ) );
 	}//end parse_query
+
+	/**
+	 * hook to this action to restore the value of the $wp_query->is_author
+	 * variable.
+	 */
+	public function posts_selection()
+	{
+		remove_action( 'posts_selection', array( $this, 'posts_selection' ) );
+
+		global $wp_query, $coauthors_plus;
+
+		// not an author query to be restored
+		if ( ! $wp_query->is_tax || ! is_array( $wp_query->query_vars['tax_query'] ) )
+		{
+			return;
+		}
+
+		// is there a coauthors_plus taxonomy query? if so then set
+		// wp_query's is_author flag back to TRUE
+		foreach ( $wp_query->query_vars['tax_query'] as $tax_query )
+		{
+			if ( $coauthors_plus->coauthor_taxonomy == $tax_query['taxonomy'] )
+			{
+				$wp_query->is_author = TRUE;
+				break;
+			}
+		}//END foreach
+
+		return;
+	}//END posts_selection
 }//end GO_Local_Coauthors_Plus_Query
 
 /**
