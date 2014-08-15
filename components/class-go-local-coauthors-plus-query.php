@@ -5,6 +5,8 @@
  */
 class GO_Local_Coauthors_Plus_Query
 {
+	private $converted_author_query = FALSE;
+
 	public function __construct()
 	{
 		// we want our init to run after co-author-plus has added its filters
@@ -120,7 +122,41 @@ class GO_Local_Coauthors_Plus_Query
 		$wp_query->set( 'author', '' );
 		$wp_query->is_author = FALSE;
 		$wp_query->is_tax = TRUE;
+
+		// set this flag so we know we've modified the author query
+ 		$this->converted_author_query = TRUE;
+
+		// We just converted an author query to a coauthors-plus taxonomy
+		// query by setting $wp_query->is_author to FALSE. To avoid confusing
+		// other code that depend on that flag, we'll set the is_author flag
+		// back to TRUE after the converted query has been executed.
+		// this is will be done in the "posts_selection" action callback.
+		add_action( 'posts_selection', array( $this, 'posts_selection' ) );
 	}//end parse_query
+
+	/**
+	 * this function is hooked to 'posts_selection' conditionally at the
+	 * end of parse_query(), only if we actually converted an author query
+	 * into a coauthors-plus taxonomy query. so when this function is invoked
+	 * and if we detect that we are indeed running a coauthors-plus taxonomy
+	 * query, we'll restore the value of the $wp_query->is_author variable
+	 * to TRUE so WP_Query and other code that depend on it will still
+	 * think this is an author query.
+	 */
+	public function posts_selection()
+	{
+		// remove ourself to avoid extraneous processing
+		remove_action( 'posts_selection', array( $this, 'posts_selection' ) );
+
+		global $wp_query;
+
+		// if we had modified the $wp_query->is_author then restore it
+		if ( $this->converted_author_query )
+		{
+			$this->converted_author_query = FALSE;
+			$wp_query->is_author = TRUE;
+		}
+	}//END posts_selection
 }//end GO_Local_Coauthors_Plus_Query
 
 /**
