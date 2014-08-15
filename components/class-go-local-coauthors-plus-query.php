@@ -123,7 +123,7 @@ class GO_Local_Coauthors_Plus_Query
 		$wp_query->is_author = FALSE;
 		$wp_query->is_tax = TRUE;
 
-		// set this flag so we know we've modified the authorh query
+		// set this flag so we know we've modified the author query
  		$this->converted_author_query = TRUE;
 
 		// We just converted an author query to a coauthors-plus taxonomy
