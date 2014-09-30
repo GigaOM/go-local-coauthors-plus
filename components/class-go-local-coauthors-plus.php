@@ -148,7 +148,7 @@ class GO_Local_Coauthors_Plus
 		}//end if
 
 		$link = sprintf(
-				'<span class="vcard"><a itemprop="author" href="%1$s" title="%2$s" rel="%3$s">%4$s</a></span>%5$s',
+				'<span class="author-container"><span class="vcard"><a itemprop="author" href="%1$s" title="%2$s" rel="%3$s">%4$s</a></span>%5$s</span>',
 				esc_url( $args['href'] ),
 				esc_attr( $args['title'] ),
 				esc_attr( $args['rel'] ),
