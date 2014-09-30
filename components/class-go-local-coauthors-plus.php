@@ -96,9 +96,14 @@ class GO_Local_Coauthors_Plus
 		// if there are double percents, we're on research/search where oxford commas should be used
 		if ( substr_count( $author, '%%' ) )
 		{
-			$author = preg_replace( '/\s+and /', '%% and ', $author );
-			$author = str_replace( '%%', ',', $author );
+			$author = preg_replace( '/\s+and /', '%%<span class="final-sep"> and </span>', $author );
+			$author = str_replace( '%%', '<span class="sep">,</span>', $author );
 		}//end if
+		else
+		{
+			$author = preg_replace( '/\s+and /', '<span class="final-sep"> and </span>', $author );
+			$author = preg_replace( '/, /', '<span class="sep">, </span>', $author );
+		}//end else
 
 		if ( $echo )
 		{
@@ -108,6 +113,9 @@ class GO_Local_Coauthors_Plus
 		return $author;
 	} //end coauthors_posts_links
 
+	/**
+	 * Render a single author link
+	 */
 	public function author_posts_links_single( $author )
 	{
 		$args = array(
@@ -121,7 +129,14 @@ class GO_Local_Coauthors_Plus
 
 		$twitter_link = '';
 
-		if ( function_exists( 'go_local_keyring_client' ) && is_single() && method_exists( go_theme(), 'theme_preview' ) && go_theme()->theme_preview() )
+		// @TODO: remove the theme_preview stuff as we launch SPPR
+		if (
+			'gigaom' == go_config()->get_property_slug()
+			&& function_exists( 'go_local_keyring_client' )
+			&& is_single()
+			&& method_exists( go_theme(), 'theme_preview' )
+			&& go_theme()->theme_preview()
+		)
 		{
 			$data = go_local_keyring_client()->get_author_meta( $author->ID );
 
@@ -133,7 +148,7 @@ class GO_Local_Coauthors_Plus
 		}//end if
 
 		$link = sprintf(
-				'<a href="%1$s" title="%2$s" rel="%3$s">%4$s</a>%5$s',
+				'<span class="vcard"><a itemprop="author" href="%1$s" title="%2$s" rel="%3$s">%4$s</a></span>%5$s',
 				esc_url( $args['href'] ),
 				esc_attr( $args['title'] ),
 				esc_attr( $args['rel'] ),
