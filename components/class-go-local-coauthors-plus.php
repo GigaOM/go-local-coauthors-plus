@@ -121,7 +121,7 @@ class GO_Local_Coauthors_Plus
 
 		$twitter_link = '';
 
-		if ( function_exists( 'go_local_keyring_client' ) && go_theme()->theme_preview() )
+		if ( function_exists( 'go_local_keyring_client' ) && is_single() && go_theme()->theme_preview() )
 		{
 			$data = go_local_keyring_client()->get_author_meta( $author->ID );
 
