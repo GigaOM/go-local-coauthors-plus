@@ -78,14 +78,32 @@ class GO_Local_Coauthors_Plus
 			$after = '';
 		}//end if
 
-		$author = apply_filters( 'go_coauthors_posts_links', coauthors_posts_links( $between, $betweenLast, $before, $after, false ), $post_id );
+		$author = coauthors__echo(
+			array( $this, 'author_posts_links_single' ),
+			'callback',
+			array(
+				'between' => $between,
+				'betweenLast' => $betweenLast,
+				'before' => $before,
+				'after' => $after
+			),
+			NULL,
+			$echo
+		);
+
+		$author = apply_filters( 'go_coauthors_posts_links', $author, $post_id );
 
 		// if there are double percents, we're on research/search where oxford commas should be used
 		if ( substr_count( $author, '%%' ) )
 		{
-			$author = preg_replace( '/\s+and /', '%% and ', $author );
-			$author = str_replace( '%%', ',', $author );
+			$author = preg_replace( '/\s+and /', '%%<span class="final-sep"> and </span>', $author );
+			$author = str_replace( '%%', '<span class="sep">,</span>', $author );
 		}//end if
+		else
+		{
+			$author = preg_replace( '/\s+and /', '<span class="final-sep"> and </span>', $author );
+			$author = preg_replace( '/, /', '<span class="sep">, </span>', $author );
+		}//end else
 
 		if ( $echo )
 		{
@@ -94,6 +112,52 @@ class GO_Local_Coauthors_Plus
 
 		return $author;
 	} //end coauthors_posts_links
+
+	/**
+	 * Render a single author link
+	 */
+	public function author_posts_links_single( $author )
+	{
+		$args = array(
+			'href' => get_author_posts_url( $author->ID, $author->user_nicename ),
+			'rel' => 'author',
+			'title' => sprintf( 'Posts by %s', get_the_author() ),
+			'text' => get_the_author(),
+		);
+
+		$args = apply_filters( 'coauthors_posts_link', $args, $author );
+
+		$twitter_link = '';
+
+		// @TODO: remove the theme_preview stuff as we launch SPPR
+		if (
+			'gigaom' == go_config()->get_property_slug()
+			&& function_exists( 'go_local_keyring_client' )
+			&& is_single()
+			&& method_exists( go_theme(), 'theme_preview' )
+			&& go_theme()->theme_preview()
+		)
+		{
+			$data = go_local_keyring_client()->get_author_meta( $author->ID );
+
+			if ( ! empty( $data['twitter_id'] ) )
+			{
+				$twitter_link = '<span class="author-twitter"><a href="https://twitter.com/%1$s" class="goicon icon-twitter"></a></span>';
+				$twitter_link = sprintf( $twitter_link, esc_attr( $data['twitter_id'] ) );
+			}//end if
+		}//end if
+
+		$link = sprintf(
+				'<span class="author-container"><span class="vcard"><a itemprop="author" href="%1$s" title="%2$s" rel="%3$s">%4$s</a></span>%5$s</span>',
+				esc_url( $args['href'] ),
+				esc_attr( $args['title'] ),
+				esc_attr( $args['rel'] ),
+				esc_html( $args['text'] ),
+				$twitter_link
+		);
+
+		return $link;
+	}//end author_posts_links_single
 
 	/**
 	 * Hooked to the go_xpost_pre_send_post filter
