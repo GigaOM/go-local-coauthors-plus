@@ -25,6 +25,9 @@ class GO_Local_Coauthors_Plus
 		// add author names so keyword searches return posts by the searched author
 		add_filter( 'bcms_search_post_content', array( $this, 'bcms_search_post_content' ), 10, 2 );
 
+		// Filter the author object so it's actually a user object
+		add_filter( 'opengraph_author_object', array( $this, 'opengraph_author_object' ) );
+
 		if ( is_admin() )
 		{
 			add_action( 'wp_ajax_go_coauthors_taxonomy_update', array( $this, 'coauthors_taxonomy_update_ajax' ) );
@@ -343,6 +346,21 @@ class GO_Local_Coauthors_Plus
 
 		return $content;
 	}//end bcms_search_post_content
+
+	/**
+	 * Deal with authors when Co-Authors Plus is running and the queried object is an author term not a user object
+	 */
+	public function opengraph_author_object( $author )
+	{
+		if (
+			isset( $author->taxonomy )
+			&& 'author' == $author->taxonomy )
+		{
+			$author = get_user_by( 'slug', $author->name );
+		} // END if
+
+		return $author;
+	} // END opengraph_author_object
 
     /**
 	 * hooked to the wp_ajax_go_coauthors_taxonomy_update action
