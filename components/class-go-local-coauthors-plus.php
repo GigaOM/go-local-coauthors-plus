@@ -75,7 +75,13 @@ class GO_Local_Coauthors_Plus
 		}//end if
 
 		// if we are on research or search, we want to use Oxford commas
-		if ( 'research' == go_config()->get_property_slug() || 'search' == go_config()->get_property_slug() )
+		if (
+			function_exists( 'go_config' )
+			&& (
+				 'research' == go_config()->get_property_slug()
+				|| 'search' == go_config()->get_property_slug()
+			)
+		)
 		{
 			$between = '%% ';
 			$after = '';
@@ -134,9 +140,11 @@ class GO_Local_Coauthors_Plus
 
 		// @TODO: remove the theme_preview stuff as we launch SPPR
 		if (
-			'gigaom' == go_config()->get_property_slug()
+			function_exists( 'go_config' )
+			&& 'gigaom' == go_config()->get_property_slug()
 			&& function_exists( 'go_local_keyring_client' )
 			&& is_single()
+			&& function_exists( 'go_theme' )
 			&& method_exists( go_theme(), 'theme_preview' )
 			&& go_theme()->theme_preview()
 		)
