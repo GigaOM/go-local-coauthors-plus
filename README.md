@@ -33,47 +33,47 @@ Usage Notes
 		- `/wp-admin/admin-ajax.php?action=go_coauthors_taxonomy_update&post_type=post&batch_size=10`
 	- If you've got custom post types you can run the method again with the post_type GET var changed to correct value
 3. `coauthors_posts_links` helper function for displaying the authors of a post:
-		
+
 	```php
 	go_coauthors()->coauthors_posts_links( $between, $betweenLast, $before, $after, $echo );
 	```
 
 	Parameters
 	----------
-	
-	**$between** 
+
+	**$between**
 
 	_(string) (optional)_ String to put between authors
-	
+
 	Default: null
-	
-	**$betweenLast** 
+
+	**$betweenLast**
 
 	_(string) (optional)_ String between last two authors (ex. "and")
-	
+
 	Default: null
-	
-	**$before** 
+
+	**$before**
 
 	_(string) (optional)_ String to put before the authors
-	
+
 	Default: null
-	
-	**$after** 
+
+	**$after**
 
 	_(string) (optional)_ String to put after the authors
-	
+
 	Default: null
-	
-	**$echo** 
+
+	**$echo**
 
 	_(boolean) (optional)_ If true outputs string
-	
+
 	Default: true
-	
+
 	Example
 	-------
-		
+
 	```php
 	go_coauthors()->coauthors_posts_links( ',', 'and' );
 	```

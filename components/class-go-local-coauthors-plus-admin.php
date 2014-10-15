@@ -18,6 +18,7 @@ class GO_Local_Coauthors_Plus_Admin
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( $this->cron_key, array( $this, 'refresh_author_cache' ) );
 		add_action( 'wp_ajax_go_local_coauthors_plus_clear_cache', array( $this, 'clear_cache' ) );
+		add_action( 'wp_ajax_go_local_coauthors_plus_autoload_no', array( $this, 'autoload_no' ) );
 
 		// Deactivate nicely and clear our custom cron
 		register_deactivation_hook( dirname( __DIR__ ) . '/go-local-coauthors-plus.php', array( $this, 'cron_deregister' ) );
@@ -210,7 +211,15 @@ class GO_Local_Coauthors_Plus_Admin
 	{
 		$authors = $this->simple_authors();
 
-		update_option( $this->author_cache_key, $authors );
+		if ( FALSE !== get_option( $this->author_cache_key ) )
+		{
+			update_option( $this->author_cache_key, $authors );
+		} // END if
+		else
+		{
+			// Add option with autoload set to no
+			add_option( $this->author_cache_key, $authors, NULL, 'no' );
+		} // END else
 
 		return $authors;
 	}//end refresh_author_cache
@@ -320,6 +329,28 @@ class GO_Local_Coauthors_Plus_Admin
 	{
 		wp_clear_scheduled_hook( $this->cron_key );
 	}//end cron_deregister
+
+	/**
+	 * Set autoload to no on cache option
+	 */
+	public function autoload_no()
+	{
+		global $wpdb;
+
+		if ( ! current_user_can( 'manage_options' ) )
+		{
+			return;
+		} // END if
+
+		$sql = $wpdb->prepare(
+			'UPDATE ' . $wpdb->options . " SET autoload = 'no' WHERE option_name = %s",
+			$this->author_cache_key
+		);
+
+		$wpdb->query( $sql );
+
+		wp_die( 'Cache option updated!' );
+	} // END autoload_no
 }//end class
 
 /**
