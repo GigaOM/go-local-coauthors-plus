@@ -94,7 +94,7 @@ class GO_Local_Coauthors_Plus
 				'between' => $between,
 				'betweenLast' => $betweenLast,
 				'before' => $before,
-				'after' => $after
+				'after' => $after,
 			),
 			NULL,
 			$echo
