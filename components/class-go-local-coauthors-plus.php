@@ -62,6 +62,7 @@ class GO_Local_Coauthors_Plus
 	 * @param boolean $echo default true, if true outputs string.
 	 * @global WP_Post $post
 	 * @return string $author
+	 * @internal This method is private and shouldn't be used by outside parties
 	 */
 	public function coauthors_posts_links( $between = NULL, $betweenLast = NULL, $before = NULL, $after = NULL, $echo = TRUE )
 	{
@@ -118,6 +119,7 @@ class GO_Local_Coauthors_Plus
 
 	/**
 	 * Render a single author link
+	 * @internal This method is private and shouldn't be used by outside parties
 	 */
 	public function author_posts_links_single( $author )
 	{

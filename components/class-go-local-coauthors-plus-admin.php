@@ -210,7 +210,8 @@ class GO_Local_Coauthors_Plus_Admin
 	{
 		$authors = $this->simple_authors();
 
-		update_option( $this->author_cache_key, $authors );
+		delete_option( $this->author_cache_key );
+		add_option( $this->author_cache_key, $authors, NULL, 'no' );
 
 		return $authors;
 	}//end refresh_author_cache
