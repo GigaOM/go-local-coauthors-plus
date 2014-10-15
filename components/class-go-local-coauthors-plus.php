@@ -257,103 +257,116 @@ class GO_Local_Coauthors_Plus
 	}// end go_xpost_save_post
 
 	/**
-	 * admin ajax call to fix posts missing coauthor taxonomy ('author') terms.
+	 * Replacement function for coauthors_posts_links that allows us to hook in additional custom functionality
 	 *
-	 * (these are query vars)
-	 *
-	 * @param $post_type Required, type of posts to process
-	 * @param int $batch_size Default=10, number of posts to process; optional.
-	 * @global GO_Local_Coauthors_Plus $coauthors_plus
-	 * @global wpdb $wpdb
-	 * @return boolean
+	 * @param string $between default null, string to put between authors
+	 * @param string $betweenLast default null, string between last two authors (ex. "and")
+	 * @param string $before default null, string to put before the authors
+	 * @param string $after default null, string to put after the authors
+	 * @param boolean $echo default true, if true outputs string.
+	 * @global WP_Post $post
+	 * @return string $author
+	 * @internal This method is private and shouldn't be used by outside parties
 	 */
-	public function update_coauthors_taxonomy( $post_type, $batch_size )
+	public function coauthors_posts_links( $between = NULL, $betweenLast = NULL, $before = NULL, $after = NULL, $echo = TRUE )
 	{
-		if ( ! current_user_can( 'manage_options' ) )
+		global $post;
+
+		$post_id = get_the_ID();
+
+		if ( ! $post_id )
 		{
-			return FALSE;
+			return;
 		}//end if
 
-		global $coauthors_plus, $wpdb;
-
-		$query = $wpdb->prepare
-			(
-			"SELECT p.ID, p.post_author
-			FROM $wpdb->posts p
-			LEFT JOIN (
-				SELECT tr.object_id
-				FROM $wpdb->term_relationships tr
-				JOIN $wpdb->term_taxonomy tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
-			) t ON t.object_id = p.ID
-			WHERE 1=1
-				AND p.post_type = %s
-				AND t.object_id IS NULL
-			GROUP BY p.ID
-			LIMIT %d",
-			$coauthors_plus->coauthor_taxonomy,
-			$post_type,
-			$batch_size
-			);
-		$rows = $wpdb->get_results( $query );
-
-		foreach ( $rows as $row )
+		// if we are on research or search, we want to use Oxford commas
+		if ( 'research' == go_config()->get_property_slug() || 'search' == go_config()->get_property_slug() )
 		{
-			// each post has at least one author
-			$coauthors = array();
-			$author = get_user_by( 'id', (int) $row->post_author );
-			if ( is_object( $author ) )
-			{
-				$coauthors[] = $author->user_login;
-			}//end if
+			$between = '%% ';
+			$after = '';
+		}//end if
 
-			// and may have legacy coauthors stored in post_meta
-			$legacy_coauthors = get_post_meta( $row->ID, '_coauthor' );
-			if ( is_array( $legacy_coauthors ) )
-			{
-				foreach ( $legacy_coauthors as $legacy_coauthor )
-				{
-					$legacy_coauthor = get_user_by( 'id', (int) $legacy_coauthor );
-					if ( is_object( $legacy_coauthor ) && ! in_array( $legacy_coauthor->user_login, $coauthors ) )
-					{
-						$coauthors[] = $legacy_coauthor->user_login;
-					}//end if
-				}//end foreach
-			}//end if
+		$author = coauthors__echo(
+			array( $this, 'author_posts_links_single' ),
+			'callback',
+			array(
+				'between' => $between,
+				'betweenLast' => $betweenLast,
+				'before' => $before,
+				'after' => $after
+			),
+			NULL,
+			$echo
+		);
 
-			$coauthors_plus->add_coauthors( $row->ID, $coauthors );
-		}//end foreach
+		$author = apply_filters( 'go_coauthors_posts_links', $author, $post_id );
 
-		return count( $rows );
-	}//end update_coauthors_taxonomy
+		// if there are double percents, we're on research/search where oxford commas should be used
+		if ( substr_count( $author, '%%' ) )
+		{
+			$author = preg_replace( '/\s+and /', '%%<span class="final-sep"> and </span>', $author );
+			$author = str_replace( '%%', '<span class="sep">,</span>', $author );
+		}//end if
+		else
+		{
+			$author = preg_replace( '/\s+and /', '<span class="final-sep"> and </span>', $author );
+			$author = preg_replace( '/, /', '<span class="sep">, </span>', $author );
+		}//end else
+
+		if ( $echo )
+		{
+			echo $author;
+		}//end if
+
+		return $author;
+	} //end coauthors_posts_links
 
 	/**
-	 * hooked to the bcms_search_post_content filter
-	 *
-	 * @param string $content the content to be filtered
-	 * @param int $post_id post ID number
-	 * @global GO_Local_Coauthors_Plus $coauthors_plus
-	 * @return string $content filtered with added author information
+	 * Render a single author link
+	 * @internal This method is private and shouldn't be used by outside parties
 	 */
-	public function bcms_search_post_content( $content, $post_id )
+	public function author_posts_links_single( $author )
 	{
-		global $coauthors_plus;
-		$authors = get_coauthors( $post_id );
+		$args = array(
+			'href' => get_author_posts_url( $author->ID, $author->user_nicename ),
+			'rel' => 'author',
+			'title' => sprintf( 'Posts by %s', get_the_author() ),
+			'text' => get_the_author(),
+		);
 
-		if ( ! is_array( $authors ) )
+		$args = apply_filters( 'coauthors_posts_link', $args, $author );
+
+		$twitter_link = '';
+
+		// @TODO: remove the theme_preview stuff as we launch SPPR
+		if (
+			'gigaom' == go_config()->get_property_slug()
+			&& function_exists( 'go_local_keyring_client' )
+			&& is_single()
+			&& method_exists( go_theme(), 'theme_preview' )
+			&& go_theme()->theme_preview()
+		)
 		{
-			return $content;
+			$data = go_local_keyring_client()->get_author_meta( $author->ID );
+
+			if ( ! empty( $data['twitter_id'] ) )
+			{
+				$twitter_link = '<span class="author-twitter"><a href="https://twitter.com/%1$s" class="goicon icon-twitter"></a></span>';
+				$twitter_link = sprintf( $twitter_link, esc_attr( $data['twitter_id'] ) );
+			}//end if
 		}//end if
 
-		foreach ( $authors as $author )
-		{
-			$content = $content . sprintf( "\n%s %s\n",
-				isset( $author->data->display_name ) ? $author->data->display_name : '',
-				isset( $author->data->user_nicename ) ? $author->data->user_nicename : ''
-			);
-		}//end foreach
+		$link = sprintf(
+				'<span class="author-container"><span class="vcard"><a itemprop="author" href="%1$s" title="%2$s" rel="%3$s" class="url fn">%4$s</a></span>%5$s</span>',
+				esc_url( $args['href'] ),
+				esc_attr( $args['title'] ),
+				esc_attr( $args['rel'] ),
+				esc_html( $args['text'] ),
+				$twitter_link
+		);
 
-		return $content;
-	}//end bcms_search_post_content
+		return $link;
+	}//end author_posts_links_single
 
 	/**
 	 * Deal with authors when Co-Authors Plus is running and the queried object is an author term not a user object
