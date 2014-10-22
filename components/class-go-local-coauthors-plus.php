@@ -92,7 +92,7 @@ class GO_Local_Coauthors_Plus
 				'after' => $after
 			),
 			NULL,
-			$echo
+			FALSE
 		);
 
 		$author = apply_filters( 'go_coauthors_posts_links', $author, $post_id );
