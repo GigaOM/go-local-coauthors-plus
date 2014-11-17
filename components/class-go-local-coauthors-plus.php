@@ -134,13 +134,10 @@ class GO_Local_Coauthors_Plus
 
 		$twitter_link = '';
 
-		// @TODO: remove the theme_preview stuff as we launch SPPR
 		if (
 			'gigaom' == go_config()->get_property_slug()
 			&& function_exists( 'go_local_keyring_client' )
 			&& is_single()
-			&& method_exists( go_theme(), 'theme_preview' )
-			&& go_theme()->theme_preview()
 		)
 		{
 			$data = go_local_keyring_client()->get_author_meta( $author->ID );
