@@ -23,7 +23,7 @@ module.exports = function(grunt) {
 		watch: {
 			files: js_files,
 			tasks: [
-				'uglify'
+				'newer:uglify'
 			]
 		}
 	});
